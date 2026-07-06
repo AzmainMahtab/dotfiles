@@ -7,7 +7,7 @@ power=$'\U000f0425'
 
 entries="$(printf '%s  Lock\n%s  Logout\n%s  Reboot\n%s  Power off' "$lock" "$logout" "$restart" "$power")"
 
-selected=$(printf '%s' "$entries" | wofi --dmenu --conf ~/.config/wofi/power-menu-config --style ~/.config/wofi/power-menu-style.css)
+selected=$(printf '%s' "$entries" | wofi --dmenu --conf ~/.config/wofi/power-menu-config --style ~/.config/wofi/style.css)
 
 case "$selected" in
     *Lock*)
