@@ -1,0 +1,11 @@
+width=220
+height=200
+location=center
+prompt=Power Menu
+allow_markup=true
+insensitive=true
+hide_scroll=true
+orientation=vertical
+halign=fill
+content_halign=fill
+no_actions=true
