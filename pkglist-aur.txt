@@ -1,0 +1,6 @@
+catppuccin-cursors-mocha
+catppuccin-gtk-theme-mocha
+papirus-folders
+paru
+sddm-theme-catppuccin-git
+xfce-polkit

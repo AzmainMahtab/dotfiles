@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Wofi wallpaper picker with thumbnails, using the existing wofi theme (~/.config/wofi).
+
+set -euo pipefail
+
+wall_dir="$HOME/Pictures/Wallpapers"
+wofi_conf="$HOME/.config/wofi/config"
+wofi_style="$HOME/.config/wofi/style.css"
+hyprpaper_conf="$HOME/.config/hypr/hyprpaper.conf"
+
+shopt -s nullglob nocaseglob
+wallpapers=("$wall_dir"/*.jpg "$wall_dir"/*.jpeg "$wall_dir"/*.png "$wall_dir"/*.webp)
+shopt -u nullglob nocaseglob
+
+if [ ${#wallpapers[@]} -eq 0 ]; then
+    notify-send "Wallpaper Picker" "No wallpapers found in $wall_dir" 2>/dev/null || true
+    exit 1
+fi
+
+menu_entries() {
+    for wall in "${wallpapers[@]}"; do
+        printf '%s\x00icon\x1f%s\n' "$(basename "$wall")" "$wall"
+    done
+}
+
+selected_name=$(menu_entries | wofi --dmenu \
+    --conf "$wofi_conf" \
+    --style "$wofi_style" \
+    --prompt "Select Wallpaper" \
+    --define image_size=200 \
+    --define width=800 \
+    --define height=600 \
+    --insensitive)
+
+[ -z "$selected_name" ] && exit 0
+
+selected_path="$wall_dir/$selected_name"
+
+if ! hyprctl hyprpaper wallpaper ",$selected_path" >/dev/null 2>&1; then
+    hyprpaper >/dev/null 2>&1 &
+    disown
+    sleep 0.5
+    hyprctl hyprpaper wallpaper ",$selected_path"
+fi
+
+if [ -f "$hyprpaper_conf" ]; then
+    sed -i \
+        -e "s|^preload *=.*|preload = $selected_path|" \
+        -e "s|^wallpaper *=.*|wallpaper = ,$selected_path|" \
+        "$hyprpaper_conf"
+fi
+
+notify-send "Wallpaper" "Set to $selected_name" 2>/dev/null || true

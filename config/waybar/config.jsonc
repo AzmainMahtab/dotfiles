@@ -1,0 +1,80 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 0,
+
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "pulseaudio", "backlight", "bluetooth", "battery", "network"],
+
+    "hyprland/workspaces": {
+        "format": "{id}",
+        "on-click": "activate",
+        "persistent-workspaces": {
+            "*": 5
+        }
+    },
+
+    "clock": {
+        "format": "{:%H:%M   %a %d %b}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+
+    "tray": {
+        "icon-size": 15,
+        "spacing": 10
+    },
+
+    "pulseaudio": {
+        "format": "{icon}  {volume}%",
+        "format-muted": "󰝟  muted",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click-right": "pavucontrol"
+    },
+
+    "backlight": {
+        "format": "{icon}  {percent}%",
+        "format-icons": ["󰖨"],
+        "on-scroll-up": "brightnessctl set 5%+",
+        "on-scroll-down": "brightnessctl set 5%-",
+        "reverse-scrolling": true
+    },
+
+    "bluetooth": {
+        "format": "󰂯",
+        "format-disabled": "󰂲",
+        "format-connected": "  {num_connections}",
+        "on-click": "blueman-manager"
+    },
+
+    "network": {
+        "format-wifi": "󰖩  {signalStrength}%",
+        "format-ethernet": "󰈀 wired",
+        "format-disconnected": "󰖪  offline",
+        "tooltip-format-wifi": "{essid}: {ipaddr}",
+        "tooltip-format-ethernet": "{ipaddr}",
+        "tooltip-format-disconnected": "Disconnected",
+        "on-click": "~/.config/waybar/scripts/network-menu.sh",
+        "on-click-right": "nm-connection-editor"
+    },
+
+    "battery": {
+        "format": "{icon}  {capacity}%",
+        "format-charging": "{icon}  {capacity}% (charging)",
+        "format-full": "󰚥  {capacity}% (plugged in)",
+        "format-plugged": "󰚥  {capacity}% (plugged in)",
+        "format-icons": {
+            "charging": ["󰂆", "󰂆", "󰢝", "󰂊", "󰂅"],
+            "plugged": ["󰚥"],
+            "default": ["󰂃", "󰁻", "󰁾", "󰂁", "󰁹"]
+        },
+        "states": {
+            "warning": 20,
+            "critical": 10
+        }
+    }
+}
