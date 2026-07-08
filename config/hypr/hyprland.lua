@@ -48,12 +48,11 @@ local menu        = "wofi --show drun"
 
 -- Autostart necessary processes (like notifications daemons, status bars, etc.)
 hl.on("hyprland.start", function ()
-    hl.exec_cmd("waybar")
+    hl.exec_cmd("bash -c 'while true; do waybar; sleep 1; done'")
     hl.exec_cmd("hyprpaper")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("dunst")
     hl.exec_cmd("blueman-applet")
-    hl.exec_cmd("/usr/lib/xfce-polkit/xfce-polkit")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 end)
@@ -67,8 +66,8 @@ end)
 
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
-hl.env("XCURSOR_THEME", "catppuccin-mocha-mauve-cursors")
-hl.env("HYPRCURSOR_THEME", "catppuccin-mocha-mauve-cursors")
+hl.env("XCURSOR_THEME", "Bibata-Modern-Ice")
+hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("GTK_THEME", "catppuccin-mocha-mauve-standard+default")
 
 
@@ -268,7 +267,7 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("firefox"))
+hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("brave"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
@@ -383,4 +382,64 @@ hl.window_rule({
 
     move  = "20 monitor_h-120",
     float = true,
+})
+
+-- Gather.town minimap popup (opened by Gather via window.open() when you
+-- switch away to another tab/app -- shows who's online while you're gone).
+-- Wayland doesn't let the client dictate its own screen position like X11
+-- did, so without this rule it lands wherever Hyprland's default float
+-- placement puts it (dead center, full popup size) instead of a small
+-- bottom-right corner bubble. Title ends in "| Gather" (no "- Brave" suffix)
+-- which distinguishes the popup from the main tab window.
+--
+-- Sized/positioned to match the screenshare-indicator-bubble below: small
+-- and tucked in a corner rather than the previous 760x768 centerpiece.
+-- Like that rule, `move` uses monitor_w/monitor_h arithmetic rather than a
+-- "100%-N" percentage expression -- percentage move values are silently
+-- dropped by this Lua windowrule engine (see the bubble rule's comment).
+--
+-- pin = true keeps it stuck to whatever workspace you're actually looking
+-- at (like a real PiP window) instead of staying behind on the workspace
+-- Gather happened to be on when the popup first opened.
+hl.window_rule({
+    name  = "gather-town-popup",
+    match = {
+        class = "^brave-browser$",
+        title = ".*\\| Gather$",
+    },
+
+    float = true,
+    pin   = true,
+    size  = "360 280",
+    move  = "monitor_w-380 monitor_h-300",
+})
+
+-- Chromium/Brave "X is sharing your screen/tab/window" control bubble
+-- (shown during any getDisplayMedia() screen share, e.g. Google Meet).
+-- It's a classless native Wayland toplevel, so like the Gather popup above
+-- it gets Hyprland's default dead-center float placement, right on top of
+-- whatever you're presenting. class="^$" + xwayland=false is specific
+-- enough to not collide with the xwayland=true "fix-xwayland-drags" rule.
+--
+-- IMPORTANT: `move` must use absolute pixel coordinates here, not a
+-- percentage expression like "50%-260 60" -- this Lua windowrule engine
+-- silently drops the *entire* rule (float included) when the move value
+-- doesn't parse, with nothing shown in `hyprctl configerrors`. Confirmed
+-- by isolated kitty-window tests: identical rule shape, only the move
+-- string changed from absolute ("300 300", worked) to percentage
+-- ("50%-260 60", silently no-opped the whole rule).
+--
+-- Bottom-center (507, 880 on this 1536x960 logical monitor: x centers the
+-- bubble's 522px width, y leaves a ~20px margin off the bottom edge).
+-- Putting it near the top instead landed it right on top of the browser's
+-- tab strip, which spans the full width regardless of x.
+hl.window_rule({
+    name  = "screenshare-indicator-bubble",
+    match = {
+        class    = "^$",
+        xwayland = false,
+    },
+
+    float = true,
+    move  = "507 880",
 })

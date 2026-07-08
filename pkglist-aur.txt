@@ -1,3 +1,5 @@
+bibata-cursor-theme-bin
+brave-bin
 catppuccin-cursors-mocha
 catppuccin-gtk-theme-mocha
 papirus-folders
