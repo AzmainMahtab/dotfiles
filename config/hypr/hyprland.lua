@@ -70,6 +70,13 @@ hl.env("XCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("GTK_THEME", "catppuccin-mocha-mauve-standard+default")
 
+-- Force Qt/GTK apps to render natively on Wayland instead of falling back to
+-- XWayland, which doesn't support the fractional monitor scale (1.25) and
+-- produces blurry/pixelated text (affects KeePassXC, ONLYOFFICE, etc.)
+hl.env("QT_QPA_PLATFORM", "wayland;xcb")
+hl.env("GDK_BACKEND", "wayland,x11")
+hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+
 
 -----------------------
 ----- PERMISSIONS -----
@@ -236,7 +243,7 @@ hl.config({
         sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
 
         touchpad = {
-            natural_scroll = false,
+            natural_scroll = true,
         },
     },
 })
@@ -276,8 +283,8 @@ hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit"))    -- dwindle only (mov
 
 -- Rice extras: lock, screenshots, clipboard history
 hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock"))    -- moved off L for vim-style nav; also reachable via SUPER+Esc power menu
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | swappy -f -"))
-hl.bind("Print", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | swappy -f -"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("flameshot gui"))
+hl.bind("Print", hl.dsp.exec_cmd("flameshot gui"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("~/.local/bin/wofi-powermenu.sh"))
 
