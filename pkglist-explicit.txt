@@ -25,9 +25,11 @@ ffmpegthumbnailer
 firefox
 firewalld
 flameshot
+flatpak
 fprintd
 git
 gnome-keyring
+go
 grim
 gst-plugin-pipewire
 gvfs
@@ -40,6 +42,7 @@ hyprpaper
 inetutils
 keepassxc
 kitty
+lazygit
 libpulse
 linux
 linux-firmware
@@ -63,6 +66,8 @@ pipewire-jack
 pipewire-pulse
 playerctl
 power-profiles-daemon
+proton-vpn-cli
+qt5-wayland
 reflector
 sddm
 sddm-theme-catppuccin-git
