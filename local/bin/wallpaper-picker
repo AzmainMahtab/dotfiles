@@ -36,18 +36,16 @@ selected_name=$(menu_entries | wofi --dmenu \
 
 selected_path="$wall_dir/$selected_name"
 
-if ! hyprctl hyprpaper wallpaper ",$selected_path" >/dev/null 2>&1; then
-    hyprpaper >/dev/null 2>&1 &
-    disown
-    sleep 0.5
-    hyprctl hyprpaper wallpaper ",$selected_path"
-fi
+hyprctl hyprpaper wallpaper "eDP-1,$selected_path" >/dev/null 2>&1
 
-if [ -f "$hyprpaper_conf" ]; then
-    sed -i \
-        -e "s|^preload *=.*|preload = $selected_path|" \
-        -e "s|^wallpaper *=.*|wallpaper = ,$selected_path|" \
-        "$hyprpaper_conf"
-fi
+cat > "$hyprpaper_conf" <<EOF
+splash = false
+ipc = on
+
+wallpaper {
+    monitor = eDP-1
+    path = $selected_path
+}
+EOF
 
 notify-send "Wallpaper" "Set to $selected_name" 2>/dev/null || true

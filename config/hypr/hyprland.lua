@@ -49,7 +49,7 @@ local menu        = "wofi --show drun"
 -- Autostart necessary processes (like notifications daemons, status bars, etc.)
 hl.on("hyprland.start", function ()
     hl.exec_cmd("bash -c 'while true; do waybar; sleep 1; done'")
-    hl.exec_cmd("hyprpaper")
+    hl.exec_cmd("bash -c 'until hyprctl monitors -j 2>/dev/null | grep -q name; do sleep 0.2; done; hyprpaper'")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("dunst")
     hl.exec_cmd("blueman-applet")
