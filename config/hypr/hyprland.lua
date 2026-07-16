@@ -77,6 +77,20 @@ hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("GDK_BACKEND", "wayland,x11")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
+-- Some Qt apps (e.g. the ONLYOFFICE flatpak) only ship the xcb platform
+-- plugin, so the wayland;xcb fallback above never takes effect and they
+-- always render via XWayland. XWayland renders at 1x and gets bitmap-
+-- upscaled to match the 1.25 fractional monitor scale, which is what
+-- actually causes the blurry/pixelated text. force_zero_scaling stops
+-- that upscale pass; pair with QT_SCALE_FACTOR (set per-app, e.g. via
+-- `flatpak override --env=QT_SCALE_FACTOR=1.25`) to keep the UI at a
+-- normal physical size while rendering at native resolution.
+hl.config({
+    xwayland = {
+        force_zero_scaling = true,
+    },
+})
+
 
 -----------------------
 ----- PERMISSIONS -----
