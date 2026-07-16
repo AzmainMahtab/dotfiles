@@ -297,8 +297,15 @@ hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit"))    -- dwindle only (mov
 
 -- Rice extras: lock, screenshots, clipboard history
 hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock"))    -- moved off L for vim-style nav; also reachable via SUPER+Esc power menu
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("flameshot gui"))
-hl.bind("Print", hl.dsp.exec_cmd("flameshot gui"))
+-- flameshot's frame grab happens almost instantly on launch (well before its
+-- editor UI matters), so it still captures wofi if wofi is open. But wofi's
+-- layer-shell "top" layer always renders above flameshot's toplevel window
+-- (layer-shell stacking can't be overridden by float/pin -- see
+-- flameshot-gui-float below), blocking the editor afterward. Closing wofi
+-- ~150ms after launch keeps it in the captured image while freeing up the
+-- selection UI to actually be used.
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("flameshot gui & sleep 0.15; pkill -x wofi"))
+hl.bind("Print", hl.dsp.exec_cmd("flameshot gui & sleep 0.15; pkill -x wofi"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("~/.local/bin/wofi-powermenu.sh"))
 
@@ -463,4 +470,18 @@ hl.window_rule({
 
     float = true,
     move  = "507 880",
+})
+
+-- Flameshot's capture window (StartupWMClass=flameshot) is a normal toplevel,
+-- so without float it gets tiled into the layout like any other window
+-- instead of overlaying the screen -- most visible when wofi is open, since
+-- flameshot then just appears as a second tiled window next to it rather
+-- than covering it. pin keeps it above the active workspace regardless of
+-- what wofi/other layer-shell surfaces are doing.
+hl.window_rule({
+    name  = "flameshot-gui-float",
+    match = { class = "^flameshot$" },
+
+    float = true,
+    pin   = true,
 })
