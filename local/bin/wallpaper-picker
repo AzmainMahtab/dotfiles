@@ -4,9 +4,13 @@
 set -euo pipefail
 
 wall_dir="$HOME/Pictures/Wallpapers"
-wofi_conf="$HOME/.config/wofi/config"
-wofi_style="$HOME/.config/wofi/style.css"
+cache_dir="$HOME/.cache/wallpaper-picker"
+wofi_conf="$HOME/.config/wofi/wallpaper-picker-config"
+wofi_style="$HOME/.config/wofi/wallpaper-picker.css"
 hyprpaper_conf="$HOME/.config/hypr/hyprpaper.conf"
+thumb_size=200
+
+mkdir -p "$cache_dir"
 
 shopt -s nullglob nocaseglob
 wallpapers=("$wall_dir"/*.jpg "$wall_dir"/*.jpeg "$wall_dir"/*.png "$wall_dir"/*.webp)
@@ -17,20 +21,39 @@ if [ ${#wallpapers[@]} -eq 0 ]; then
     exit 1
 fi
 
+# Generate or reuse a PNG thumbnail for a wallpaper.
+thumb_for() {
+    local src="$1"
+    local name hash thumb
+    name="$(basename "$src")"
+    hash="$(printf '%s' "$src" | md5sum | cut -d' ' -f1)"
+    thumb="$cache_dir/${hash}_${name}.png"
+    if [ ! -f "$thumb" ] || [ "$src" -nt "$thumb" ]; then
+        if command -v magick >/dev/null 2>&1; then
+            magick "$src" -resize "${thumb_size}x${thumb_size}>" "$thumb" 2>/dev/null || true
+        elif command -v convert >/dev/null 2>&1; then
+            convert "$src" -resize "${thumb_size}x${thumb_size}>" "$thumb" 2>/dev/null || true
+        fi
+    fi
+    printf '%s' "$thumb"
+}
+
 menu_entries() {
     for wall in "${wallpapers[@]}"; do
-        printf '%s\x00icon\x1f%s\n' "$(basename "$wall")" "$wall"
+        local thumb
+        thumb="$(thumb_for "$wall")"
+        if [ -f "$thumb" ]; then
+            printf '%s:img:%s\n' "$(basename "$wall")" "$thumb"
+        else
+            printf '%s\n' "$(basename "$wall")"
+        fi
     done
 }
 
 selected_name=$(menu_entries | wofi --dmenu \
+    --allow-images \
     --conf "$wofi_conf" \
-    --style "$wofi_style" \
-    --prompt "Select Wallpaper" \
-    --define image_size=200 \
-    --define width=800 \
-    --define height=600 \
-    --insensitive)
+    --style "$wofi_style")
 
 [ -z "$selected_name" ] && exit 0
 

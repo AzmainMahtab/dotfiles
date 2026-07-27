@@ -33,13 +33,13 @@ window {
 }
 
 #img {
-    margin-right: 12px;
     min-width: 48px;
     min-height: 48px;
 }
 
 #text {
     color: #cdd6f4;
+    min-width: 540px;
 }
 
 #entry {

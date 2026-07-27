@@ -1,0 +1,9 @@
+allow_images=true
+image_size=200
+width=800
+height=600
+insensitive=true
+hide_scroll=true
+location=center
+orientation=vertical
+prompt=Select Wallpaper
