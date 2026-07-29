@@ -36,7 +36,9 @@ hl.monitor({
 
 -- Set programs that you use
 local terminal    = "kitty"
-local fileManager = "thunar"
+-- Wrapper prefers nemo and falls back to thunar/dolphin/etc. if nemo is removed,
+-- so Super+E keeps working across package updates.
+local fileManager = "/home/odin/.local/bin/open-file-manager"
 local menu        = "wofi --show drun"
 
 
@@ -46,12 +48,16 @@ local menu        = "wofi --show drun"
 
 -- See https://wiki.hypr.land/Configuring/Basics/Autostart/
 
--- Autostart necessary processes (like notifications daemons, status bars, etc.)
+-- Autostart necessary processes (like notification daemons, status bars, etc.)
 hl.on("hyprland.start", function ()
     hl.exec_cmd("bash -c 'while true; do waybar; sleep 1; done'")
     hl.exec_cmd("bash -c 'until hyprctl monitors -j 2>/dev/null | grep -q name; do sleep 0.2; done; hyprpaper'")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("dunst")
+    -- Validate that all keybind/autostart commands still exist after system updates.
+    -- If something was removed (e.g. a package providing thunar or flameshot),
+    -- this pops a critical notification so the binding isn't silently broken.
+    hl.exec_cmd("/home/odin/.local/bin/validate-keybind-commands")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
@@ -167,14 +173,16 @@ hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}   
 hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1}    } })
 hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}     } })
 
--- Default springs
+-- Default springs (kept available but unused for windows to avoid overshoot/overlap)
 hl.curve("easy",           { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
 
 hl.animation({ leaf = "global",        enabled = true,  speed = 10,   bezier = "default" })
 hl.animation({ leaf = "border",        enabled = true,  speed = 5.39, bezier = "easeOutQuint" })
-hl.animation({ leaf = "windows",       enabled = true,  speed = 4.79, spring = "easy" })
-hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 4.1,  spring = "easy",         style = "popin 87%" })
-hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 1.49, bezier = "linear",       style = "popin 87%" })
+-- Use a fast but visible easeOutQuint for window open/close.
+-- Lower speed = shorter duration. popin removed so there's no scaling delay.
+hl.animation({ leaf = "windows",       enabled = true,  speed = 3.0,  bezier = "easeOutQuint", style = "slide" })
+hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 3.0,  bezier = "easeOutQuint", style = "slide" })
+hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 2.0,  bezier = "easeOutQuint", style = "slide" })
 hl.animation({ leaf = "fadeIn",        enabled = true,  speed = 1.73, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeOut",       enabled = true,  speed = 1.46, bezier = "almostLinear" })
 hl.animation({ leaf = "fade",          enabled = true,  speed = 3.03, bezier = "quick" })
@@ -297,15 +305,11 @@ hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit"))    -- dwindle only (mov
 
 -- Rice extras: lock, screenshots, clipboard history
 hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock"))    -- moved off L for vim-style nav; also reachable via SUPER+Esc power menu
--- flameshot's frame grab happens almost instantly on launch (well before its
--- editor UI matters), so it still captures wofi if wofi is open. But wofi's
--- layer-shell "top" layer always renders above flameshot's toplevel window
--- (layer-shell stacking can't be overridden by float/pin -- see
--- flameshot-gui-float below), blocking the editor afterward. Closing wofi
--- ~150ms after launch keeps it in the captured image while freeing up the
--- selection UI to actually be used.
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("flameshot gui & sleep 0.15; pkill -x wofi"))
-hl.bind("Print", hl.dsp.exec_cmd("flameshot gui & sleep 0.15; pkill -x wofi"))
+-- Use ~/.local/bin/screenshot.sh (grim+slurp+hyprpicker+swappy) instead of
+-- hardcoding flameshot, so the binding keeps working if the screenshot tool
+-- is replaced during a system update.
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("/home/odin/.local/bin/screenshot.sh"))
+hl.bind("Print", hl.dsp.exec_cmd("/home/odin/.local/bin/screenshot.sh"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("~/.local/bin/wofi-powermenu.sh"))
 
