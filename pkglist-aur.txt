@@ -6,7 +6,6 @@ clutter
 clutter-gst
 clutter-gtk
 cogl
-innoextract-git
 nemo-preview
 papirus-folders
 paru

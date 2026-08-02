@@ -11,7 +11,6 @@ brave-bin
 brightnessctl
 catppuccin-cursors-mocha
 catppuccin-gtk-theme-mocha
-cdrtools
 celluloid
 chromium
 cliphist
@@ -51,13 +50,11 @@ hyprlock
 hyprpaper
 hyprpicker
 inetutils
-innoextract-git
 keepassxc
 kitty
 lazygit
 libdvdcss
 libgsf
-libisoburn
 libpulse
 libreoffice-fresh
 linux
