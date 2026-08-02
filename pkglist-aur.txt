@@ -2,7 +2,14 @@ bibata-cursor-theme-bin
 brave-bin
 catppuccin-cursors-mocha
 catppuccin-gtk-theme-mocha
+clutter
+clutter-gst
+clutter-gtk
+cogl
+innoextract-git
+nemo-preview
 papirus-folders
 paru
 sddm-theme-catppuccin-git
+ventoy-bin
 xfce-polkit

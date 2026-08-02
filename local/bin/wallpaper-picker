@@ -57,6 +57,10 @@ selected_name=$(menu_entries | wofi --dmenu \
 
 [ -z "$selected_name" ] && exit 0
 
+# Wofi may return the full image-escaped line (basename:img:thumb_path).
+# Strip the image escape suffix to recover the clean filename.
+selected_name="${selected_name%%:img:*}"
+
 selected_path="$wall_dir/$selected_name"
 
 hyprctl hyprpaper wallpaper "eDP-1,$selected_path" >/dev/null 2>&1

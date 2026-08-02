@@ -7,7 +7,16 @@ power=$'\U000f0425'
 
 entries="$(printf '%s  Lock\n%s  Logout\n%s  Reboot\n%s  Power off' "$lock" "$logout" "$restart" "$power")"
 
-selected=$(printf '%s' "$entries" | wofi --dmenu --conf ~/.config/wofi/power-menu-config --style ~/.config/wofi/style.css)
+wofi_common="--conf $HOME/.config/wofi/power-menu-config --style $HOME/.config/wofi/power-menu.css"
+
+selected=$(printf '%s' "$entries" | wofi --dmenu $wofi_common)
+
+confirm() {
+    local action="$1"
+    local choice
+    choice=$(printf 'Yes\nNo' | wofi --dmenu --prompt "Confirm $action?" $wofi_common)
+    [[ "$choice" == "Yes" ]]
+}
 
 case "$selected" in
     *Lock*)
@@ -17,9 +26,9 @@ case "$selected" in
         uwsm stop
         ;;
     *Reboot*)
-        systemctl reboot
+        confirm "Reboot" && systemctl reboot
         ;;
     *"Power off"*)
-        systemctl poweroff
+        confirm "Power off" && systemctl poweroff
         ;;
 esac

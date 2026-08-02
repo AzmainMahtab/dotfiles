@@ -58,6 +58,8 @@ hl.on("hyprland.start", function ()
     -- If something was removed (e.g. a package providing thunar or flameshot),
     -- this pops a critical notification so the binding isn't silently broken.
     hl.exec_cmd("/home/odin/.local/bin/validate-keybind-commands")
+    -- Keep Nemo resident so file-manager windows open instantly (warm start ~0.014s).
+    hl.exec_cmd("nemo --no-default-window >/dev/null 2>&1")
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")

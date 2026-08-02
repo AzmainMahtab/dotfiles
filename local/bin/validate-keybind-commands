@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Check that all commands referenced by Hyprland key bindings / autostart are
+# installed. Run this manually after system updates, or add it to autostart
+# to be notified immediately when a keybind command goes missing.
+
+set -euo pipefail
+
+config="${1:-$HOME/.config/hypr/hyprland.lua}"
+
+if [[ ! -f "$config" ]]; then
+    echo "Config not found: $config" >&2
+    exit 1
+fi
+
+missing=()
+
+# Extract the first word of every exec_cmd argument and check if it's available.
+# This handles both hl.dsp.exec_cmd("...") and hl.exec_cmd("...").
+while IFS= read -r cmd; do
+    # Skip empty/commented commands and pure shell control structures
+    [[ -z "$cmd" ]] && continue
+    case "$cmd" in
+        bash|sh|command|if|then|else|fi|for|while|do|done|case|esac|echo|printf|sleep|pkill|kill|trap|exec|hyprctl) continue ;;
+    esac
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        missing+=("$cmd")
+    fi
+done < <(
+    grep -oE 'h?l\.exec_cmd\("[^"]+"\)' "$config" 2>/dev/null |
+    sed 's/.*"\([^"]*\)".*/\1/' |
+    while read -r line; do
+        # Print the first token, expanding simple ~ to $HOME
+        printf '%s\n' "${line/#\~/$HOME}" | awk '{print $1}'
+    done
+)
+
+if ((${#missing[@]})); then
+    msg="Missing keybind/autostart commands:\\n$(printf '  - %s\\n' "${missing[@]}")"
+    echo -e "$msg" >&2
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send -u critical "Hyprland keybind commands missing" "$msg"
+    fi
+    exit 1
+fi
+
+echo "All keybind/autostart commands are available."

@@ -7,3 +7,5 @@ hide_scroll=true
 location=center
 orientation=vertical
 prompt=Select Wallpaper
+# Strip :img: escape sequences from the selected result so the filename is clean.
+dmenu-parse_action=true

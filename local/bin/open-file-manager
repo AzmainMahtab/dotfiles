@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Preferred file manager: nemo. Falls back to other common choices if nemo
+# is removed, so the Hyprland key binding doesn't silently break on updates.
+
+set -euo pipefail
+
+# Try nemo first (explicit default)
+if command -v nemo >/dev/null 2>&1; then
+    exec nemo "$@"
+fi
+
+# Fallbacks if nemo is unavailable
+for cmd in thunar dolphin pcmanfm nautilus caja; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+        exec "$cmd" "$@"
+    fi
+done
+
+notify-send "No file manager found" "Install nemo, thunar, dolphin, pcmanfm, nautilus, or caja." >&2
+exit 1

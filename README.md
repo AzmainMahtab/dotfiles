@@ -1,6 +1,24 @@
 # Rice backup — Catppuccin Mocha Hyprland
 
-## Restore on a fresh Arch install
+## Quick install on a fresh Arch install
+
+Run the installer from inside this repo:
+
+```bash
+./install.sh
+```
+
+By default it symlinks configs back into `~/.config` so changes in the repo are
+live. Use `./install.sh --copy` if you prefer copies. Other useful flags:
+
+```bash
+./install.sh --dry-run      # preview what would be changed
+./install.sh --no-packages  # skip package installation
+./install.sh --no-system    # skip /etc/pam.d file changes
+./install.sh --yes          # answer yes to all prompts (use with care)
+```
+
+## Manual restore on a fresh Arch install
 
 1. Install packages:
    ```bash
@@ -36,5 +54,6 @@
 
 ## Updating this backup
 
-After changing any config, re-copy the relevant file(s) from `~/.config/`
+If you used the symlink installer, edits in `~/.config` are already reflected in
+this repo. If you used copy mode, re-copy the relevant file(s) from `~/.config/`
 into this repo, then `git add -A && git commit`.
