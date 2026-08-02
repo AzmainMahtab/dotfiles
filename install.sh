@@ -21,9 +21,12 @@ CONFIG_DIR="$DOTFILES_DIR/config"
 LOCAL_DIR="$DOTFILES_DIR/local"
 SYSTEM_DIR="$DOTFILES_DIR/system"
 WALLPAPER_DIR="$DOTFILES_DIR/wallpapers"
+HOME_FILES_DIR="$DOTFILES_DIR/home"
+SHARE_DIR="$DOTFILES_DIR/share"
 
 HOME_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 HOME_LOCAL_BIN="$HOME/.local/bin"
+HOME_LOCAL_SHARE="${XDG_DATA_HOME:-$HOME/.local/share}"
 HOME_WALLPAPERS="$HOME/Pictures/Wallpapers"
 
 BACKUP_DIR="$HOME/.dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
@@ -169,6 +172,50 @@ install_configs() {
 }
 
 # ---------------------------------------------------------------------------
+# Bare home dotfiles
+#
+# Files live in home/ without a leading dot (home/bashrc) and are installed
+# as ~/.bashrc. Keeps the repo listing readable and avoids hidden files.
+# ---------------------------------------------------------------------------
+install_home_files() {
+    if [[ ! -d "$HOME_FILES_DIR" ]]; then
+        return 0
+    fi
+
+    info "Installing home dotfiles into $HOME ..."
+
+    for src in "$HOME_FILES_DIR"/*; do
+        [[ -e "$src" ]] || continue
+        local name
+        name="$(basename "$src")"
+        install_config_item "$src" "$HOME/.$name"
+    done
+}
+
+# ---------------------------------------------------------------------------
+# XDG data files (custom .desktop entries referenced by mimeapps.list)
+# ---------------------------------------------------------------------------
+install_share_files() {
+    if [[ ! -d "$SHARE_DIR/applications" ]]; then
+        return 0
+    fi
+
+    info "Installing desktop entries into $HOME_LOCAL_SHARE/applications ..."
+    mkdir -p "$HOME_LOCAL_SHARE/applications"
+
+    for src in "$SHARE_DIR/applications"/*; do
+        [[ -e "$src" ]] || continue
+        local name
+        name="$(basename "$src")"
+        install_config_item "$src" "$HOME_LOCAL_SHARE/applications/$name"
+    done
+
+    if command -v update-desktop-database >/dev/null 2>&1 && [[ "$DRY_RUN" -eq 0 ]]; then
+        update-desktop-database "$HOME_LOCAL_SHARE/applications" 2>/dev/null || true
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Local scripts
 # ---------------------------------------------------------------------------
 install_local_scripts() {
@@ -290,6 +337,10 @@ install_system_files() {
 
     install_system_file "$SYSTEM_DIR/pam-sudo" "/etc/pam.d/sudo"
     install_system_file "$SYSTEM_DIR/pam-hyprlock" "/etc/pam.d/hyprlock"
+
+    # SDDM theme selection. The theme itself comes from the
+    # sddm-theme-catppuccin-git package; this only selects it.
+    install_system_file "$SYSTEM_DIR/sddm-theme.conf" "/etc/sddm.conf.d/theme.conf"
 }
 
 install_system_file() {
@@ -306,6 +357,10 @@ install_system_file() {
     fi
 
     mkdir -p "$BACKUP_DIR"
+
+    # Destination directory may not exist yet on a fresh machine
+    # (e.g. /etc/sddm.conf.d before sddm is configured).
+    sudo mkdir -p "$(dirname "$dst")"
 
     if [[ -f "$dst" ]]; then
         sudo cp -a "$dst" "$BACKUP_DIR/" 2>/dev/null || true
@@ -324,17 +379,27 @@ apply_defaults() {
 
     if command -v xdg-mime >/dev/null 2>&1; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
-            info "Would run: xdg-mime default thunar.desktop inode/directory"
+            info "Would run: xdg-mime default nemo.desktop inode/directory"
         else
-            xdg-mime default thunar.desktop inode/directory || warn "Failed to set default file manager"
+            xdg-mime default nemo.desktop inode/directory || warn "Failed to set default file manager"
         fi
     fi
 
     if command -v xdg-settings >/dev/null 2>&1; then
         if [[ "$DRY_RUN" -eq 1 ]]; then
-            info "Would run: xdg-settings set default-web-browser firefox.desktop"
+            info "Would run: xdg-settings set default-web-browser brave-browser.desktop"
         else
-            xdg-settings set default-web-browser firefox.desktop || warn "Failed to set default browser"
+            xdg-settings set default-web-browser brave-browser.desktop || warn "Failed to set default browser"
+        fi
+    fi
+
+    # GTK4/libadwaita apps read the cursor from gsettings, not settings.ini.
+    if command -v gsettings >/dev/null 2>&1; then
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "Would run: gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice'"
+        else
+            gsettings set org.gnome.desktop.interface cursor-theme 'Bibata-Modern-Ice' \
+                || warn "Failed to set cursor theme"
         fi
     fi
 
@@ -367,6 +432,15 @@ enable_services() {
             sudo systemctl enable --now "$svc" || warn "Failed to enable $svc"
         fi
     done
+
+    # User services shipped in config/systemd/user
+    if [[ -f "$HOME_CONFIG/systemd/user/auto-power-profile.service" ]]; then
+        systemctl --user daemon-reload || true
+        if confirm "Enable auto-power-profile.service (user) now?"; then
+            systemctl --user enable --now auto-power-profile.service \
+                || warn "Failed to enable auto-power-profile.service"
+        fi
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -379,6 +453,8 @@ main() {
 
     install_packages
     install_configs
+    install_home_files
+    install_share_files
     install_local_scripts
     install_wallpapers
     install_system_files

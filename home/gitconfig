@@ -1,0 +1,5 @@
+[credential]
+	helper = libsecret
+[user]
+	email = azmainmahtab97@gmail.com
+	name = Azmain Mahtab

@@ -1,59 +1,66 @@
 # Rice backup — Catppuccin Mocha Hyprland
 
-## Quick install on a fresh Arch install
+Full replica of the Hyprland desktop: compositor, bar, launcher, notifications,
+terminal, GTK/SDDM theming, fonts, shell, and the packages behind them.
 
-Run the installer from inside this repo:
+## Repo layout
+
+| Directory | Installs to | Contents |
+|---|---|---|
+| `config/` | `~/.config/<name>` | hypr, waybar, wofi, dunst, kitty, gtk-3.0, gtk-4.0, fontconfig, nvim, systemd, mimeapps.list |
+| `home/` | `~/.<name>` | bashrc, bash_profile, profile, inputrc, gitconfig — stored without the leading dot |
+| `local/bin/` | `~/.local/bin/` | wallpaper-picker, wofi-powermenu.sh, screenshot.sh, open-file-manager, validate-keybind-commands, auto-power-profile.py |
+| `share/applications/` | `~/.local/share/applications/` | custom `.desktop` entries referenced by `mimeapps.list` |
+| `system/` | `/etc/` | `pam-sudo`, `pam-hyprlock` → `/etc/pam.d/`; `sddm-theme.conf` → `/etc/sddm.conf.d/theme.conf` |
+| `wallpapers/` | `~/Pictures/Wallpapers/` | wallpapers referenced by hyprpaper and the picker |
+| `pkglist-*.txt` | — | explicit and AUR package lists |
+
+## Quick install on a fresh Arch install
 
 ```bash
 ./install.sh
 ```
 
-By default it symlinks configs back into `~/.config` so changes in the repo are
-live. Use `./install.sh --copy` if you prefer copies. Other useful flags:
+By default it **symlinks** configs back into place, so later edits are live in
+this repo with no drift. Use `--copy` for independent copies. Other flags:
 
 ```bash
 ./install.sh --dry-run      # preview what would be changed
 ./install.sh --no-packages  # skip package installation
-./install.sh --no-system    # skip /etc/pam.d file changes
+./install.sh --no-system    # skip /etc changes (PAM, SDDM theme)
 ./install.sh --yes          # answer yes to all prompts (use with care)
 ```
 
-## Manual restore on a fresh Arch install
+The installer also sets desktop defaults (nemo as file manager, Brave as
+browser, Bibata cursor via gsettings, Papirus folder recolour) and offers to
+enable `sddm`, `NetworkManager`, `bluetooth`, `cups`, `firewalld` and the
+`auto-power-profile` user service.
 
-1. Install packages:
-   ```bash
-   paru -S --needed - < pkglist-explicit.txt
-   ```
-   `pkglist-aur.txt` lists which of those came from the AUR, for reference.
+## Package lists
 
-2. Copy configs back into place:
-   ```bash
-   cp -r config/hypr config/waybar config/wofi config/dunst config/kitty ~/.config/
-   cp config/gtk-3.0/settings.ini ~/.config/gtk-3.0/settings.ini
-   cp config/gtk-4.0/settings.ini ~/.config/gtk-4.0/settings.ini
-   cp config/mimeapps.list ~/.config/mimeapps.list
-   ```
+`pkglist-explicit.txt` is **curated, not generated** — one-off tooling is
+deliberately excluded, so do not overwrite it with a bare `pacman -Qqe`.
+Regenerate with the exclusions applied:
 
-3. Scripts and wallpapers:
-   ```bash
-   mkdir -p ~/.local/bin
-   cp local/bin/wallpaper-picker ~/.local/bin/
-   chmod +x ~/.local/bin/wallpaper-picker ~/.config/waybar/scripts/network-menu.sh
-   mkdir -p ~/Pictures/Wallpapers
-   cp wallpapers/* ~/Pictures/Wallpapers/
-   ```
+```bash
+pacman -Qqe | grep -vxFf pkglist-ignore.txt | sort > pkglist-explicit.txt
+pacman -Qqm | grep -vxFf pkglist-ignore.txt | sort > pkglist-aur.txt
+```
 
-4. Set defaults and recolor icons:
-   ```bash
-   xdg-mime default thunar.desktop inode/directory
-   xdg-settings set default-web-browser firefox.desktop
-   papirus-folders -C violet -t Papirus-Dark
-   ```
+## Not captured
 
-5. Log out/in (or `hyprctl reload`) to pick everything up.
+A few things are intentionally left out and must be redone by hand:
+
+- Fingerprint enrolment (`fprintd-enroll`) — `system/pam-sudo` references
+  `pam_fprintd.so`, but enrolled prints are per-machine.
+- Anything in `~/.local/bin` installed by another tool's installer
+  (`claude`, `uv`, `pen`, `graphify`, …) — reinstall those from source.
+- Browser profiles, GPG keys, SSH keys.
 
 ## Updating this backup
 
-If you used the symlink installer, edits in `~/.config` are already reflected in
-this repo. If you used copy mode, re-copy the relevant file(s) from `~/.config/`
-into this repo, then `git add -A && git commit`.
+If installed via symlink, edits under `~/.config` are already live here — just
+`git add -A && git commit`. If the files are real copies (as on a machine that
+predates the installer), copy the changed file back into the matching tier
+first. Re-running `./install.sh` converts copies into symlinks and ends the
+drift.

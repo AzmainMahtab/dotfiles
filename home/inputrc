@@ -1,0 +1,14 @@
+# ~/.inputrc
+
+# Shift+Enter (CSI-u sequence) inserts a literal newline without executing.
+# The macro sends Ctrl+V (quoted-insert) then Enter, so bash keeps the newline
+# inside the current command line instead of submitting it.
+"\e[13;2u": "\C-v\n"
+
+# Enable 8-bit input so escape sequences are handled cleanly.
+set input-meta on
+set output-meta on
+set convert-meta off
+
+# Optional: show typed escape sequences immediately instead of beeping.
+set echo-control-characters off

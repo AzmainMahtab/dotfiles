@@ -1,0 +1,32 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias cd='z'
+alias ls='exa -l'
+
+# kitty over SSH: auto-bootstraps xterm-kitty terminfo on the remote host
+# for the session so clear/tput/bracketed-paste work correctly.
+if [ -n "$KITTY_WINDOW_ID" ]; then
+  alias ssh='kitty +kitten ssh'
+fi
+
+PS1='[\u@\h \W]\$ '
+export PATH="$HOME/.local/bin:$PATH"
+
+# CC Analytics — Claude Code team analytics
+export PATH="$HOME/.cc-analytics/bin:$PATH"
+
+# opencode
+export PATH=/home/odin/.opencode/bin:$PATH
+
+# NVM (node version manager)
+source /usr/share/nvm/init-nvm.sh
+
+. "$HOME/.local/share/../bin/env"
+eval "$(zoxide init bash)"

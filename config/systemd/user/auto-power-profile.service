@@ -1,0 +1,12 @@
+[Unit]
+Description=Auto switch power profile on AC/battery change
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/auto-power-profile.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
