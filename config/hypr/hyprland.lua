@@ -63,6 +63,10 @@ hl.on("hyprland.start", function ()
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("wl-paste --watch cliphist store")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
+    -- Ventoy's GUI escalates to root via pkexec and forces GDK_BACKEND=x11, so the root
+    -- process has to be allowed past XWayland's access control or its window never appears.
+    -- Retries because XWayland comes up asynchronously after the compositor.
+    hl.exec_cmd("bash -c 'for i in $(seq 30); do xhost +SI:localuser:root >/dev/null 2>&1 && exit 0; sleep 1; done'")
 end)
 
 
