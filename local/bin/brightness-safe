@@ -1,0 +1,83 @@
+#!/bin/sh
+# Brightness control for amdgpu_bl1 (Radeon 680M / Rembrandt).
+#
+# Two hardware limits bound this panel, and the percentage scale is mapped onto
+# the window between them so that 0%..100% is entirely usable:
+#
+#   Top:    raw 62747 drives the hardware register to exactly 65535, the panel
+#           maximum. Raw 62748+ overflows the 16-bit register and wraps to 0,
+#           which reads as lowest intensity. So 62747 IS full brightness.
+#   Bottom: raw 2..4400 all produce the same hardware output (4112, the panel's
+#           floor). Output only begins rising around raw 4500, so everything
+#           below 4400 is physically indistinguishable.
+#
+# Hence MIN_RAW..MAX_RAW below. Mapping is LINEAR in raw (CURVE=1) on purpose:
+# this driver already applies its own convex curve from raw to the hardware
+# register, which supplies the perceptual compensation. Stacking brightnessctl's
+# `-e4` exponential on top of it double-compensated and crushed the entire lower
+# half of the scale onto the floor. Raise CURVE above 1 for finer control at the
+# dim end, at the cost of coarser steps up top.
+#
+# Usage: brightness-safe up | down | max | min | get | set <pct> | waybar
+
+DEV=amdgpu_bl1
+MAX_RAW=62747    # -> hardware 65535; anything higher wraps to 0
+MIN_RAW=4400     # -> hardware 4112; anything lower is the same brightness
+CURVE=1          # 1 = linear in raw; the driver supplies its own curve
+STEP=5           # percentage points per keypress
+WAYBAR_SIGNAL=8
+ICON='󰖨'
+
+raw_now() { brightnessctl -d "$DEV" -m | cut -d, -f3; }
+
+# raw value -> percentage of the usable window
+pct_of() {
+    awk -v r="$1" -v lo="$MIN_RAW" -v hi="$MAX_RAW" -v c="$CURVE" 'BEGIN {
+        if (r < lo) r = lo; if (r > hi) r = hi
+        printf "%.4f", 100 * ((r - lo) / (hi - lo)) ^ (1 / c)
+    }'
+}
+
+# percentage -> raw value inside the usable window
+raw_of() {
+    awk -v p="$1" -v lo="$MIN_RAW" -v hi="$MAX_RAW" -v c="$CURVE" 'BEGIN {
+        if (p < 0) p = 0; if (p > 100) p = 100
+        printf "%d", int(lo + (hi - lo) * (p / 100) ^ c + 0.5)
+    }'
+}
+
+step_by() {
+    awk -v cur="$(pct_of "$(raw_now)")" -v d="$1" 'BEGIN {
+        p = cur + d
+        if (p < 0) p = 0; if (p > 100) p = 100
+        printf "%.4f", p
+    }'
+}
+
+round_pct() { awk -v p="$1" 'BEGIN { printf "%d", p + 0.5 }'; }
+
+case "$1" in
+    up)     pct=$(step_by "$STEP") ;;
+    down)   pct=$(step_by "-$STEP") ;;
+    max)    pct=100 ;;
+    min)    pct=0 ;;
+    set)    pct=$2 ;;
+    get)    round_pct "$(pct_of "$(raw_now)")"; exit 0 ;;
+    waybar)
+        p=$(round_pct "$(pct_of "$(raw_now)")")
+        printf '{"text":"%s  %s%%","tooltip":"Brightness %s%%","percentage":%s}\n' \
+            "$ICON" "$p" "$p" "$p"
+        exit 0
+        ;;
+    *)
+        echo "usage: ${0##*/} up | down | max | min | get | set <pct> | waybar" >&2
+        exit 1
+        ;;
+esac
+
+brightnessctl -d "$DEV" -q set "$(raw_of "$pct")"
+
+# Nudge waybar so the readout updates immediately rather than on its poll.
+pkill -RTMIN+$WAYBAR_SIGNAL waybar 2>/dev/null
+
+exit 0

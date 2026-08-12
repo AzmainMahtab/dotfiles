@@ -6,7 +6,7 @@
 
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock"],
-    "modules-right": ["tray", "pulseaudio", "backlight", "bluetooth", "battery", "network"],
+    "modules-right": ["tray", "pulseaudio", "custom/backlight", "bluetooth", "battery", "network"],
 
     "hyprland/workspaces": {
         "format": "{id}",
@@ -36,11 +36,17 @@
         "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
     },
 
-    "backlight": {
-        "format": "{icon}  {percent}%",
-        "format-icons": ["󰖨"],
-        "on-scroll-up": "brightnessctl set 5%+",
-        "on-scroll-down": "brightnessctl set 5%-",
+    // Custom rather than the built-in "backlight" module: amdgpu_bl1 advertises a
+    // max of 65535 but wraps to 0 above 62747, so sysfs-derived percentages cap
+    // out at 96%. brightness-safe reports against the usable range instead.
+    "custom/backlight": {
+        "format": "{}",
+        "return-type": "json",
+        "exec": "/home/odin/.local/bin/brightness-safe waybar",
+        "interval": 2,
+        "signal": 8,
+        "on-scroll-up": "/home/odin/.local/bin/brightness-safe up",
+        "on-scroll-down": "/home/odin/.local/bin/brightness-safe down",
         "reverse-scrolling": true
     },
 
