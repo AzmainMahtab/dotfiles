@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
-# Screenshot: hyprpicker freeze -> slurp select -> grim capture -> clipboard
-#             -> optional annotation in satty/swappy.
+# Screenshot: hyprpicker freeze -> slurp select -> grim capture -> preview,
+#             and nothing is written or copied until you pick an action.
 #
-# Usage: screenshot.sh [smart|region|windows|fullscreen] [slurp|copy|save] [--editor=NAME]
+# Usage: screenshot.sh [smart|region|windows|fullscreen] [preview|copy|save] [--editor=NAME]
+#
+# Flow (default `preview`):
+#   1. select a region (snaps to windows/outputs; click grabs the one under
+#      the cursor)
+#   2. the shot opens in satty as a preview -- annotate it or don't
+#   3. choose:  Ctrl+S / toolbar save -> write to $save_dir
+#               Ctrl+C / Enter        -> copy to clipboard
+#               Esc                   -> discard
+#      satty exits after save or copy (--early-exit all).
+#
+# Until step 3 the capture exists only as a temp file under XDG_RUNTIME_DIR,
+# which is tmpfs (RAM) -- it never touches disk, and it is removed when the
+# editor exits. `copy` and `save` skip the preview for scripted use.
 #
 # Waybar's layer-shell "top" layer always renders above a normal toplevel
 # window -- no windowrule/hide hack can put a toplevel capture UI (flameshot)
@@ -12,21 +25,17 @@
 #
 # hyprpicker -r -z freezes the screen behind slurp (same trick Omarchy's own
 # screenshot script uses) so selection happens over a still frame instead of
-# the live desktop. It's kept alive until after grim captures, then killed,
-# so the frozen frame covers the actual capture too, not just the drag.
+# the live desktop. It is killed after grim captures but before the preview
+# opens, so the frozen frame covers the capture without sitting on top of the
+# editor window.
 #
-# Ported from Omarchy's bin/omarchy-capture-screenshot:
-#   - re-pressing the bind cancels an in-flight selection instead of stacking
-#     a second slurp
-#   - slurp is fed monitor + window rectangles so selection snaps to them
-#   - a click (area < 20px^2) captures the window/output under the cursor
-#     rather than a 2px sliver
-#   - monitor geometry is divided by scale and swapped on transform 1/3, so
-#     fullscreen mode is correct on this 1.25-scaled and on rotated outputs
-#   - the editor is opt-in: the shot is saved and copied immediately, and the
-#     annotator only opens if you click the notification
+# Selection behaviour is ported from Omarchy's bin/omarchy-capture-screenshot;
+# the preview-first handoff replaces its notification, which relied on
+# left-click firing the default action. That is a mako behaviour -- dunst
+# binds do_action to the MIDDLE button (mouse_left_click = close_current in
+# config/dunst/dunstrc), so a left click only dismissed it.
 #
-# Omarchy does the geometry in jq; jq is not installed here, so the same logic
+# Omarchy does the geometry in jq, which is not installed here, so that logic
 # lives in the _geometry() python helper below. python3 is already a dotfiles
 # dependency (local/bin/auto-power-profile.py).
 
@@ -49,7 +58,7 @@ done
 set -- ${args[@]+"${args[@]}"}
 
 mode="${1:-smart}"
-processing="${2:-slurp}"
+processing="${2:-preview}"
 
 # Monitor geometry in *logical* coords (what slurp and grim speak): raw mode
 # pixels divided by scale, with width/height swapped for 90/270 rotations.
@@ -96,29 +105,45 @@ PY_EOF
 }
 
 freeze_pid=""
+tmpshot=""
+_cleanup() {
+    [[ -n $freeze_pid ]] && kill "$freeze_pid" 2>/dev/null
+    [[ -n $tmpshot ]] && rm -f "$tmpshot"
+    return 0
+}
+trap _cleanup EXIT
+# bash does not run an EXIT trap when killed by a signal, which would strand
+# the capture in tmpfs until reboot. Exiting from these handlers does.
+trap 'exit 130' INT
+trap 'exit 143' TERM HUP
+
 _freeze() {
     hyprpicker -r -z >/dev/null 2>&1 &
     freeze_pid=$!
-    trap '[[ -n $freeze_pid ]] && kill "$freeze_pid" 2>/dev/null' EXIT
     sleep 0.1
 }
+# The frozen overlay must come down before the preview opens, or it sits on
+# top of the editor window.
 _unfreeze() {
     [[ -n $freeze_pid ]] && kill "$freeze_pid" 2>/dev/null || true
     freeze_pid=""
-    trap - EXIT
 }
 
-_open_editor() {
+# Opens the capture for review. Neither editor is given a path it will write
+# on its own: satty's --output-filename is only used by its save action, and
+# swappy is deliberately called without -o (which would write on exit).
+_preview() {
     local f="$1"
     case "$editor" in
         satty)
             satty --filename "$f" \
-                  --output-filename "$f" \
+                  --output-filename "$save_dir/screenshot_%Y-%m-%d_%H-%M-%S.png" \
+                  --copy-command 'wl-copy' \
+                  --early-exit all \
                   --actions-on-enter save-to-clipboard \
-                  --save-after-copy \
-                  --copy-command 'wl-copy'
+                  --actions-on-escape exit
             ;;
-        swappy) swappy -f "$f" -o "$f" ;;
+        swappy) swappy -f "$f" ;;
         *)      "$editor" "$f" ;;
     esac
 }
@@ -174,32 +199,25 @@ esac
 
 [[ -z ${selection:-} ]] && exit 0
 
-mkdir -p "$save_dir"
-file="$save_dir/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
-
 case "$processing" in
     copy)
         grim -g "$selection" - | wl-copy
         _unfreeze
         ;;
     save)
+        mkdir -p "$save_dir"
+        file="$save_dir/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
         grim -g "$selection" "$file"
         _unfreeze
         echo "$file"
         ;;
-    slurp|*)
-        grim -g "$selection" "$file"
+    preview|slurp|*)
+        # tmpfs, so the capture is held in RAM rather than written to disk
+        # while it waits for you to decide. Removed by the EXIT trap.
+        mkdir -p "$save_dir"
+        tmpshot="$(mktemp -p "${XDG_RUNTIME_DIR:-/tmp}" screenshot-XXXXXX.png)"
+        grim -g "$selection" "$tmpshot"
         _unfreeze
-        echo "$file"
-        wl-copy <"$file"
-
-        # notify-send -A implies --wait, so this has to be backgrounded or the
-        # script would block on the notification timeout.
-        (
-            action="$(notify-send "Screenshot saved to clipboard and file" \
-                "Click to annotate in $editor" \
-                -t 10000 -i "$file" -A "default=edit")"
-            [[ $action == "default" ]] && _open_editor "$file"
-        ) >/dev/null 2>&1 &
+        _preview "$tmpshot"
         ;;
 esac
