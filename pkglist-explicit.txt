@@ -1,5 +1,6 @@
 7zip
 amd-ucode
+anydesk-bin
 base
 base-devel
 bash-completion
@@ -35,6 +36,7 @@ git
 github-cli
 gnome-keyring
 go
+gparted
 grim
 gst-libav
 gst-plugin-pipewire
@@ -42,6 +44,7 @@ gst-plugins-bad
 gst-plugins-ugly
 gvfs
 gvfs-mtp
+herdr-bin
 htop
 hunspell-en_us
 hypridle
@@ -75,6 +78,7 @@ noto-fonts
 noto-fonts-cjk
 noto-fonts-emoji
 nvm
+obs-studio
 pacman-contrib
 papirus-folders
 papirus-icon-theme
@@ -85,6 +89,7 @@ pipewire-alsa
 pipewire-jack
 pipewire-pulse
 playerctl
+pnpm
 poppler-glib
 power-profiles-daemon
 proton-vpn-cli
@@ -120,6 +125,7 @@ waybar
 wget
 wireplumber
 wl-clipboard
+woeusb-ng
 wofi
 wpa_supplicant
 xarchiver
