@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# AnyDesk launch wrapper -- added 2026-08-28.
+#
+# WHY (size): AnyDesk 8.0.4 is a *hybrid* client. Its GTK window is a native
+# Wayland surface (picked up from GDK_BACKEND=wayland,x11 in hyprland.lua),
+# but it reads monitor geometry over a SEPARATE X11 connection to XWayland.
+# Confirmed with `ss -xp`: the process held 3 sockets to Xwayland and 2 to
+# Hyprland simultaneously.
+#
+# With `scale = 1.25` (hyprland.lua:29) + `xwayland.force_zero_scaling = true`
+# (hyprland.lua:102), XWayland reports the raw physical panel -- AnyDesk logs
+# "base.monitor_info - Monitor 0: w/h : 1920/1200" -- while its Wayland surface
+# lives in a 1536x960 logical canvas. AnyDesk sizes the remote view against the
+# X numbers and draws into the Wayland one, so the remote desktop lands ~1.25x
+# too small. It never learns the real scale: it logs "DPI scaling: 1.00 / 1.00"
+# and gtk_widget_get_scale_factor() asserts outright.
+#
+# GDK_BACKEND=x11 puts the window on XWayland too, so geometry and rendering
+# finally agree. Verified: xwayland:1, 5 Xwayland sockets, 0 to Hyprland.
+#
+# NOTE: the window class differs by backend -- "anydesk" on Wayland but
+# "Anydesk" on XWayland. Match ^[Aa]nydesk$ in any Hyprland windowrule.
+#
+# WHY (crash): set ANYDESK_SOFTWARE_GL=1 to force llvmpipe, bypassing the
+# amdgpu/XWayland GL path suspected in the 2026-08-28 11:39 full-system lockup
+# (AnyDesk had just initialised OpenGL 3 + a 1920x1080 GL texture; the machine
+# hard-locked and came back with a dirty filesystem bit).
+#
+# To disable this wrapper entirely: rm ~/.local/bin/anydesk
+# (~/.local/bin precedes /usr/bin on PATH, which is what makes it take effect.)
+
+set -euo pipefail
+
+export GDK_BACKEND=x11
+
+if [[ -n "${ANYDESK_SOFTWARE_GL:-}" ]]; then
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export GALLIUM_DRIVER=llvmpipe
+fi
+
+exec /usr/bin/anydesk "$@"

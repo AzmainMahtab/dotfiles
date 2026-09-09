@@ -341,6 +341,13 @@ install_system_files() {
     # SDDM theme selection. The theme itself comes from the
     # sddm-theme-catppuccin-git package; this only selects it.
     install_system_file "$SYSTEM_DIR/sddm-theme.conf" "/etc/sddm.conf.d/theme.conf"
+
+    # journald sync interval. The default (5m) loses the tail of the kernel log
+    # when the machine hard-locks, which is exactly what happened during the
+    # 2026-08-28 AnyDesk GPU lockup -- the journal stopped ~2 minutes before the
+    # freeze. 1s makes amdgpu faults survive to disk.
+    install_system_file "$SYSTEM_DIR/journald-crash-capture.conf" \
+        "/etc/systemd/journald.conf.d/99-crash-capture.conf"
 }
 
 install_system_file() {

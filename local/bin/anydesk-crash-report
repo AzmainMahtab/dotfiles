@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# After a lockup + reboot, dump the tail of the PREVIOUS boot's kernel log.
+# With SyncIntervalSec=1s in place (see /etc/systemd/journald.conf.d/), the
+# amdgpu ring timeout / GPU reset that was lost in the 2026-08-28 lockup
+# should now actually survive to disk.
+#
+# Usage: anydesk-crash-report [lines]   (default 80)
+set -euo pipefail
+n="${1:-80}"
+echo "=== previous boot: kernel tail ==="
+journalctl -b -1 -k --no-pager | tail -n "$n"
+echo
+echo "=== previous boot: amdgpu/drm errors ==="
+journalctl -b -1 -k --no-pager | grep -iE 'amdgpu|drm|gpu|ring|reset|hang|fault|timeout' | tail -n 40 || echo "(none found)"
+echo
+echo "=== unclean shutdown check (dirty fs bit on current boot) ==="
+journalctl -b 0 --no-pager | grep -i 'dirty bit' || echo "(clean -- no forced power-off detected)"

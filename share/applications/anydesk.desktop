@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=AnyDesk
+GenericName=AnyDesk
+X-GNOME-FullName=AnyDesk
+Comment=Launched via ~/.local/bin/anydesk (forces GDK_BACKEND=x11; see that script for why)
+Exec=/home/odin/.local/bin/anydesk %u
+TryExec=/home/odin/.local/bin/anydesk
+Icon=anydesk
+Terminal=false
+Categories=Network;GTK;
+MimeType=x-scheme-handler/anydesk;
+StartupWMClass=Anydesk
+Name[de_DE]=AnyDesk

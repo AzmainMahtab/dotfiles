@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Print AnyDesk's window identity. Run this WHILE a remote session is open.
+#
+# Purpose: AnyDesk 8 tabs sessions into a single toplevel, so a session may not
+# be a separate window at all. Rather than guess a title regex for a fullscreen
+# windowrule (hyprland.lua warns that a bad rule silently no-ops with nothing in
+# `hyprctl configerrors`), capture the real class/title here first.
+
+hyprctl clients | awk '
+  /^Window /            { win = $0; next }
+  /^\tclass: /          { cls = $2 }
+  /^\ttitle: /          { $1=""; ttl = substr($0,2) }
+  /^\txwayland: /       { xw  = $2 }
+  /^\tsize: /           { sz  = $2 }
+  /^\tfullscreen: /     { fs  = $2
+                          if (tolower(cls) ~ /anydesk/)
+                            printf "class=%-10s xwayland=%s size=%-10s fullscreen=%s\n  title=%s\n", cls, xw, sz, fs, ttl
+                        }
+' || true
+
+echo
+echo "If a session window shows a class/title distinct from the main window"
+echo '(class "Anydesk", title "AnyDesk"), a fullscreen rule can target it exactly.'
