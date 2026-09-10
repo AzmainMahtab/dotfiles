@@ -1,3 +1,12 @@
 cdrtools
 innoextract-git
 libisoburn
+mangohud
+nemo-preview
+obs-studio
+proton-vpn-cli
+reflector
+smartmontools
+superfile
+woeusb-ng
+xarchiver

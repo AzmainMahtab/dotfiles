@@ -8,10 +8,8 @@ clutter-gst
 clutter-gtk
 cogl
 herdr-bin
-nemo-preview
 papirus-folders
 paru
 sddm-theme-catppuccin-git
 ventoy-bin
-woeusb-ng
 xfce-polkit
