@@ -497,3 +497,44 @@ hl.window_rule({
     float = true,
     pin   = true,
 })
+
+-- Video calls go blank when you switch away to another workspace.
+--
+-- Hyprland stops sending frame callbacks to windows on a workspace that
+-- isn't visible, but Chromium does *not* flip the page to
+-- document.visibilityState = "hidden" in response -- measured on a window
+-- parked on a hidden workspace, the page still reports "visible" while
+-- requestAnimationFrame drops to 0 frames over 25s. That combination is
+-- the whole problem: the call page never runs its own "I've been
+-- backgrounded" path (it keeps the camera open and believes it's still
+-- drawing), while every rAF-driven part of it -- including the video
+-- pipeline -- is frozen solid. So the feed goes blank instead of pausing
+-- and resuming cleanly the way it would if it knew it was hidden.
+--
+-- `render_unfocused` makes the compositor keep pulling frames from these
+-- windows while they're off-screen, which keeps rAF running. Measured
+-- A/B/A on the same hidden window, fresh window and `hyprctl reload` in
+-- every arm: 0 fps without the rule, 1200 frames/20s with it, 0 fps again
+-- once removed.
+--
+-- Scoped to call windows by title instead of all of Brave, so ordinary
+-- background tabs keep costing nothing. Matching on title is safe here
+-- even though the window is mapped before WhatsApp/Meet gets around to
+-- setting its title -- verified that a window titled only after it maps
+-- still picks the rule up.
+--
+-- These windows render at the full 60 fps while hidden, which is what you
+-- want for call quality and only lasts as long as the call. If that ever
+-- matters for battery, misc:render_unfocused_fps throttles it -- but note
+-- it only takes effect when set to a genuinely low value: 5 measured
+-- 5.8 fps, while 30 still measured a full 60, and leaving it unset does
+-- not cap anything despite reporting a default of 15.
+hl.window_rule({
+    name  = "keep-video-calls-rendering",
+    match = {
+        class = "^(brave-browser|chromium)$",
+        title = ".*(WhatsApp call|Google Meet|Meet - |\\| Gather|Jitsi|Zoom|Microsoft Teams|Whereby|Discord).*",
+    },
+
+    render_unfocused = true,
+})
