@@ -6,3 +6,4 @@ config/systemd/user/*.wants/
 config/dunst/dunstrc.d/
 config/gtk-3.0/gtk.css
 config/gtk-4.0/gtk.css
+__pycache__/
