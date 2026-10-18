@@ -116,6 +116,9 @@ def main():
     if gtk and (Path("/usr/share/themes") / gtk).is_dir():
         sh("gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", gtk)
         sh("gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark")
+    icons = pal.get("icon_theme")
+    if icons and (Path("/usr/share/icons") / icons).is_dir():
+        sh("gsettings", "set", "org.gnome.desktop.interface", "icon-theme", icons)
 
     wall = pick_wallpaper(name, pal)
     if wall:
