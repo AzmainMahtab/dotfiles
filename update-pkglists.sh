@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# Regenerate the package lists, honouring pkglist-ignore.txt.
-# Use this instead of a bare `pacman -Qqe > pkglist-explicit.txt`, which would
-# silently reinstate deliberately-excluded one-off tooling.
+# Compare the hand-curated rice package list with the live system.
+# Never rewrites the lists; edit pkglist-explicit.txt / pkglist-optional.txt by hand.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-ignore="pkglist-ignore.txt"
-[[ -f "$ignore" ]] || : > "$ignore"
+names() { sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$1" | grep -v '^$' | sort -u; }
 
-pacman -Qqe | grep -vxFf "$ignore" | sort > pkglist-explicit.txt
-pacman -Qqm | grep -vxFf "$ignore" | sort > pkglist-aur.txt
+rice=$(names pkglist-explicit.txt)
+extras=$(names pkglist-optional.txt)
+installed=$(pacman -Qq | sort -u)
 
-printf 'pkglist-explicit.txt: %s packages\n' "$(wc -l < pkglist-explicit.txt)"
-printf 'pkglist-aur.txt:      %s packages\n' "$(wc -l < pkglist-aur.txt)"
-printf 'excluded:             %s\n' "$(tr '\n' ' ' < "$ignore")"
+echo "Rice packages not installed:"
+comm -23 <(echo "$rice") <(echo "$installed") | sed 's/^/  /'
+echo
+echo "Explicitly installed, in neither list (add to rice or optional, or ignore):"
+comm -23 <(pacman -Qqe | sort -u) <(sort -u <(echo "$rice") <(echo "$extras")) | sed 's/^/  /'

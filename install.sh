@@ -7,6 +7,7 @@
 #   -c, --copy         Copy configs instead of symlinking (default: symlink).
 #   -p, --no-packages  Skip package installation.
 #   -s, --no-system    Skip system file installation (PAM files).
+#   -e, --extras       Also install optional extras from pkglist-optional.txt.
 #   -y, --yes          Assume yes for interactive prompts (use with care).
 #   -h, --help         Show this help message.
 
@@ -38,6 +39,7 @@ DRY_RUN=0
 COPY_MODE=0
 SKIP_PACKAGES=0
 SKIP_SYSTEM=0
+INSTALL_EXTRAS=0
 ASSUME_YES=0
 
 # ---------------------------------------------------------------------------
@@ -52,7 +54,7 @@ success() { printf '\033[1;32m[OK]\033[0m %s\n' "$*"; }
 # Argument parsing
 # ---------------------------------------------------------------------------
 usage() {
-    sed -n '2,12p' "$0"
+    sed -n '2,13p' "$0"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -61,6 +63,7 @@ while [[ $# -gt 0 ]]; do
         -c|--copy)         COPY_MODE=1; shift ;;
         -p|--no-packages)  SKIP_PACKAGES=1; shift ;;
         -s|--no-system)    SKIP_SYSTEM=1; shift ;;
+        -e|--extras)       INSTALL_EXTRAS=1; shift ;;
         -y|--yes)          ASSUME_YES=1; shift ;;
         -h|--help)         usage; exit 0 ;;
         *)
@@ -266,6 +269,41 @@ install_wallpapers() {
 # ---------------------------------------------------------------------------
 # Package installation
 # ---------------------------------------------------------------------------
+# Package lists hold one name per line; '#' comments and blank lines allowed.
+pkg_names() {
+    sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$1" | grep -v '^$' || true
+}
+
+install_package_list() {
+    local list="$1"
+
+    case "$PKG_MANAGER" in
+        paru|yay)
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                info "Would run: $PKG_MANAGER -S --needed - ($(pkg_names "$list" | wc -l) packages from $(basename "$list"))"
+                return 0
+            fi
+            pkg_names "$list" | "$PKG_MANAGER" -S --needed -
+            ;;
+        pacman)
+            # pacman cannot install AUR packages; filter them out.
+            warn "Only pacman found; AUR packages from pkglist-aur.txt will be skipped."
+            if [[ "$DRY_RUN" -eq 1 ]]; then
+                info "Would run: pacman -S --needed - (minus AUR) for $(basename "$list")"
+                return 0
+            fi
+            pkg_names "$list" | grep -vxF -f "$DOTFILES_DIR/pkglist-aur.txt" \
+                | sudo pacman -S --needed -
+            warn "Please install AUR packages manually or use paru/yay."
+            ;;
+        *)
+            error "No supported package manager found (paru, yay, or pacman)."
+            error "Install one of them and re-run, or use --no-packages."
+            exit 1
+            ;;
+    esac
+}
+
 install_packages() {
     if [[ "$SKIP_PACKAGES" -eq 1 ]]; then
         info "Skipping package installation (--no-packages)."
@@ -277,33 +315,13 @@ install_packages() {
         return 0
     fi
 
-    info "Installing packages from pkglist-explicit.txt ..."
+    info "Installing rice packages from pkglist-explicit.txt ..."
+    install_package_list "$DOTFILES_DIR/pkglist-explicit.txt"
 
-    case "$PKG_MANAGER" in
-        paru|yay)
-            if [[ "$DRY_RUN" -eq 1 ]]; then
-                info "Would run: $PKG_MANAGER -S --needed - < $DOTFILES_DIR/pkglist-explicit.txt"
-                return 0
-            fi
-            "$PKG_MANAGER" -S --needed - < "$DOTFILES_DIR/pkglist-explicit.txt"
-            ;;
-        pacman)
-            # pacman cannot install AUR packages; filter them out.
-            warn "Only pacman found; AUR packages from pkglist-aur.txt will be skipped."
-            if [[ "$DRY_RUN" -eq 1 ]]; then
-                info "Would run: pacman -S --needed - < $DOTFILES_DIR/pkglist-explicit.txt (minus AUR)"
-                return 0
-            fi
-            grep -vxF -f "$DOTFILES_DIR/pkglist-aur.txt" "$DOTFILES_DIR/pkglist-explicit.txt" \
-                | sudo pacman -S --needed -
-            warn "Please install AUR packages manually or use paru/yay."
-            ;;
-        *)
-            error "No supported package manager found (paru, yay, or pacman)."
-            error "Install one of them and re-run, or use --no-packages."
-            exit 1
-            ;;
-    esac
+    if [[ "$INSTALL_EXTRAS" -eq 1 && -f "$DOTFILES_DIR/pkglist-optional.txt" ]]; then
+        info "Installing optional extras from pkglist-optional.txt ..."
+        install_package_list "$DOTFILES_DIR/pkglist-optional.txt"
+    fi
 
     success "Package installation complete."
 }

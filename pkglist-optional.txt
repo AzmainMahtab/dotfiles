@@ -1,0 +1,28 @@
+# Optional extras: not part of the rice. Install with ./install.sh --extras
+
+# Remote desktop (wrapper scripts in local/bin expect it)
+anydesk-bin
+
+# Apps
+antigravity-ide
+omniroute-bin
+photocraft-bin
+firefox
+
+# Gaming input
+xpadneo-dkms
+linuxconsole
+evtest
+
+# Automation / misc tools
+ydotool
+usbutils
+
+# Hardware / system
+rtkit
+wireless-regdb
+
+# VLC codec plugins
+vlc-plugin-ass
+vlc-plugin-ffmpeg
+vlc-plugin-freetype

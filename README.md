@@ -13,7 +13,7 @@ terminal, GTK/SDDM theming, fonts, shell, and the packages behind them.
 | `share/applications/` | `~/.local/share/applications/` | custom `.desktop` entries referenced by `mimeapps.list` |
 | `system/` | `/etc/` | `pam-sudo`, `pam-hyprlock` → `/etc/pam.d/`; `sddm-theme.conf` → `/etc/sddm.conf.d/theme.conf` |
 | `wallpapers/` | `~/Pictures/Wallpapers/` | wallpapers referenced by hyprpaper and the picker |
-| `pkglist-*.txt` | — | explicit and AUR package lists |
+| `pkglist-*.txt` | — | rice, AUR and optional package lists |
 
 ## Quick install on a fresh Arch install
 
@@ -28,6 +28,7 @@ this repo with no drift. Use `--copy` for independent copies. Other flags:
 ./install.sh --dry-run      # preview what would be changed
 ./install.sh --no-packages  # skip package installation
 ./install.sh --no-system    # skip /etc changes (PAM, SDDM theme)
+./install.sh --extras       # also install pkglist-optional.txt
 ./install.sh --yes          # answer yes to all prompts (use with care)
 ```
 
@@ -38,14 +39,14 @@ enable `sddm`, `NetworkManager`, `bluetooth`, `cups`, `firewalld` and the
 
 ## Package lists
 
-`pkglist-explicit.txt` is **curated, not generated** — one-off tooling is
-deliberately excluded, so do not overwrite it with a bare `pacman -Qqe`.
-Regenerate with the exclusions applied:
+| File | Contents |
+|---|---|
+| `pkglist-explicit.txt` | Rice packages only: compositor, bar, launcher, screenshots, theming, fonts, file manager, compression. Hand-curated, grouped with `#` comments. |
+| `pkglist-aur.txt` | The AUR subset of the above (used by the plain-`pacman` fallback). |
+| `pkglist-optional.txt` | Extras that are not part of the rice. Installed only with `./install.sh --extras`. |
 
-```bash
-pacman -Qqe | grep -vxFf pkglist-ignore.txt | sort > pkglist-explicit.txt
-pacman -Qqm | grep -vxFf pkglist-ignore.txt | sort > pkglist-aur.txt
-```
+Check the rice list against the live system with `./update-pkglists.sh`; it
+only reports differences and never rewrites the lists.
 
 ## Not captured
 
