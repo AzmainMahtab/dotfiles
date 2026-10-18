@@ -65,11 +65,11 @@ window, window.background, .background, dialog, messagedialog {
     background-color: {{mantle}};
     color: {{text}};
 }
-.view, iconview, treeview.view, textview text, .content-view, flowbox, list, listview, columnview {
+.view, iconview, treeview.view, textview text, .content-view, listview, columnview {
     background-color: {{base}};
     color: {{text}};
 }
-.view:selected, iconview:selected, treeview.view:selected, row:selected, flowboxchild:selected,
+.view:selected, iconview:selected, treeview.view:selected, row:selected,
 .view text selection, entry selection, selection {
     background-color: {{accent}};
     color: {{base}};
