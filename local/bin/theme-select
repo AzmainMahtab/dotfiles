@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Wofi theme selector: pick a palette from ~/.config/themes/palettes and apply it.
+
+set -euo pipefail
+
+current="$(cat "$HOME/.config/theme-active/current" 2>/dev/null || true)"
+
+entries=""
+while IFS=$'\t' read -r id label; do
+    mark="  "
+    [[ "$id" == "$current" ]] && mark="● "
+    entries+="$mark$label"$'\n'
+done < <(theme-apply --list)
+
+selected="$(printf '%s' "$entries" | wofi --dmenu --prompt "Theme" \
+    --conf "$HOME/.config/wofi/power-menu-config" \
+    --style "$HOME/.config/theme-active/wofi-power-menu.css" \
+    --height 200)"
+[[ -z "$selected" ]] && exit 0
+
+# Drop the current-theme marker and padding in front of the label.
+selected="${selected#"${selected%%[[:alnum:]]*}"}"
+
+while IFS=$'\t' read -r id label; do
+    if [[ "$label" == "$selected" ]]; then
+        exec theme-apply "$id"
+    fi
+done < <(theme-apply --list)

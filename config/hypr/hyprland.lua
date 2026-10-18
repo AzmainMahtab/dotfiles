@@ -39,7 +39,7 @@ local terminal    = "kitty"
 -- Wrapper prefers nemo and falls back to thunar/dolphin/etc. if nemo is removed,
 -- so Super+E keeps working across package updates.
 local fileManager = os.getenv("HOME") .. "/.local/bin/open-file-manager"
-local menu        = "wofi --show drun"
+local menu        = "wofi --show drun --style ~/.config/theme-active/wofi.css"
 
 
 -------------------
@@ -127,6 +127,15 @@ hl.config({
 ---- LOOK AND FEEL ----
 -----------------------
 
+-- Theme colours, rendered by theme-apply; fall back to Catppuccin Mocha if absent.
+local theme_ok, theme = pcall(dofile, os.getenv("HOME") .. "/.config/theme-active/hypr.lua")
+if not theme_ok then
+    theme = {
+        active_border   = { "rgba(cba6f7ee)", "rgba(b4befeee)" },
+        inactive_border = "rgba(585b70aa)",
+    }
+end
+
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
     general = {
@@ -135,10 +144,10 @@ hl.config({
 
         border_size = 2,
 
-        -- Catppuccin Mocha: mauve -> lavender active border, surface2 inactive
+        -- Border colours come from the active theme (theme-apply / SUPER+T).
         col = {
-            active_border   = { colors = {"rgba(cba6f7ee)", "rgba(b4befeee)"}, angle = 45 },
-            inactive_border = "rgba(585b70aa)",
+            active_border   = { colors = theme.active_border, angle = 45 },
+            inactive_border = theme.inactive_border,
         },
 
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
@@ -310,13 +319,14 @@ hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("~/.local/bin/wallpaper-picker"))
 hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit"))    -- dwindle only (moved off J for vim-style nav)
 
 -- Rice extras: lock, screenshots, clipboard history
-hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock"))    -- moved off L for vim-style nav; also reachable via SUPER+Esc power menu
+hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock -c ~/.config/theme-active/hyprlock.conf"))    -- moved off L for vim-style nav; also reachable via SUPER+Esc power menu
 -- Use ~/.local/bin/screenshot.sh (grim+slurp+hyprpicker+swappy) instead of
 -- hardcoding flameshot, so the binding keeps working if the screenshot tool
 -- is replaced during a system update.
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("~/.local/bin/screenshot.sh"))
 hl.bind("Print", hl.dsp.exec_cmd("~/.local/bin/screenshot.sh"))
-hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu --style ~/.config/theme-active/wofi.css | cliphist decode | wl-copy"))
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("~/.local/bin/theme-select"))
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("~/.local/bin/wofi-powermenu.sh"))
 
 -- Move focus with mainMod + arrow keys

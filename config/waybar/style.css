@@ -1,3 +1,5 @@
+@import "../theme-active/colors.css";
+
 * {
     font-family: "JetBrainsMono Nerd Font Mono", "Noto Sans", sans-serif;
     font-size: 16px;
@@ -7,8 +9,8 @@
 }
 
 window#waybar {
-    background-color: #1e1e2e;
-    color: #cdd6f4;
+    background-color: @th_base;
+    color: @th_text;
     border-radius: 0;
     padding: 0 12px;
 }
@@ -24,7 +26,7 @@ window#waybar {
 }
 
 #workspaces button {
-    color: #6c7086;
+    color: @th_overlay0;
     padding: 0 6px;
     margin: 4px 2px;
     min-width: 22px;
@@ -33,14 +35,14 @@ window#waybar {
 }
 
 #workspaces button.active {
-    color: #1e1e2e;
-    background-color: #cba6f7;
+    color: @th_base;
+    background-color: @th_accent;
     font-weight: 700;
 }
 
 #workspaces button:hover {
-    color: #cdd6f4;
-    background-color: #313244;
+    color: @th_text;
+    background-color: @th_surface0;
     box-shadow: none;
 }
 
@@ -50,49 +52,49 @@ window#waybar {
 #network,
 #bluetooth,
 #battery {
-    color: #cdd6f4;
+    color: @th_text;
     padding: 0 10px;
 }
 
 #clock {
-    color: #b4befe;
+    color: @th_accent2;
     font-weight: 600;
 }
 
 #pulseaudio {
-    color: #a6e3a1;
+    color: @th_green;
 }
 
 #pulseaudio.muted {
-    color: #6c7086;
+    color: @th_overlay0;
 }
 
 #custom-backlight {
-    color: #fab387;
+    color: @th_peach;
 }
 
 #bluetooth {
-    color: #89b4fa;
+    color: @th_blue;
 }
 
 #network {
-    color: #74c7ec;
+    color: @th_sky;
 }
 
 #network.disconnected {
-    color: #f38ba8;
+    color: @th_red;
 }
 
 #battery {
-    color: #f5c2e7;
+    color: @th_pink;
 }
 
 #battery.warning {
-    color: #f9e2af;
+    color: @th_yellow;
 }
 
 #battery.critical {
-    color: #f38ba8;
+    color: @th_red;
 }
 
 #tray > .passive {

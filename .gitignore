@@ -1,3 +1,6 @@
 # systemctl --user enable writes wants/ symlinks into ~/.config/systemd/user,
 # which is a symlink into this repo. Keep the generated units out of git.
 config/systemd/user/*.wants/
+
+# theme-apply points a generated drop-in into this repo-tracked directory.
+config/dunst/dunstrc.d/

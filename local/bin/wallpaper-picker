@@ -6,7 +6,7 @@ set -euo pipefail
 wall_dir="$HOME/Pictures/Wallpapers"
 cache_dir="$HOME/.cache/wallpaper-picker"
 wofi_conf="$HOME/.config/wofi/wallpaper-picker-config"
-wofi_style="$HOME/.config/wofi/wallpaper-picker.css"
+wofi_style="$HOME/.config/theme-active/wofi-wallpaper-picker.css"
 hyprpaper_conf="$HOME/.config/hypr/hyprpaper.conf"
 thumb_size=200
 

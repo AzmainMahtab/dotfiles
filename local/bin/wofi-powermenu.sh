@@ -7,7 +7,7 @@ power=$'\U000f0425'
 
 entries="$(printf '%s  Lock\n%s  Logout\n%s  Reboot\n%s  Power off' "$lock" "$logout" "$restart" "$power")"
 
-wofi_common="--conf $HOME/.config/wofi/power-menu-config --style $HOME/.config/wofi/power-menu.css"
+wofi_common="--conf $HOME/.config/wofi/power-menu-config --style $HOME/.config/theme-active/wofi-power-menu.css"
 
 selected=$(printf '%s' "$entries" | wofi --dmenu $wofi_common)
 
@@ -20,7 +20,7 @@ confirm() {
 
 case "$selected" in
     *Lock*)
-        hyprlock
+        hyprlock -c "$HOME/.config/theme-active/hyprlock.conf"
         ;;
     *Logout*)
         uwsm stop

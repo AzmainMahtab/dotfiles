@@ -407,6 +407,19 @@ install_system_file() {
 }
 
 # ---------------------------------------------------------------------------
+# Theme: render the active palette (default catppuccin) into ~/.config/theme-active
+# ---------------------------------------------------------------------------
+apply_theme() {
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "Would run: theme-apply"
+        return 0
+    fi
+    if [[ -x "$HOME_LOCAL_BIN/theme-apply" ]]; then
+        "$HOME_LOCAL_BIN/theme-apply" || warn "theme-apply failed"
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # Post-install defaults
 # ---------------------------------------------------------------------------
 apply_defaults() {
@@ -493,6 +506,7 @@ main() {
     install_local_scripts
     install_wallpapers
     install_system_files
+    apply_theme
     apply_defaults
     enable_services
 
