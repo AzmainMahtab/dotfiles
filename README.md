@@ -50,8 +50,18 @@ Picking one re-renders every themed app and reloads what is running.
 | Menu | `local/bin/theme-select` |
 | Generated output (untracked) | `~/.config/theme-active/` |
 
-Themed: Hyprland borders, waybar, wofi, dunst, kitty, hyprlock and nvim
-(nvim picks it up on next start). GTK apps and cursors stay Catppuccin.
+Themed: Hyprland borders, waybar, wofi, dunst, kitty, hyprlock, nvim (open
+instances switch live), GTK apps such as nemo (via gsettings; needs the
+`gruvbox-gtk-theme-git` package), the wallpaper and Brave's toolbar colour.
+Cursors and Papirus folder colours stay as they are.
+
+Wallpapers live in one folder per theme under `~/Pictures/Wallpapers/`
+(`wallpaper_dir` in the palette). The picker (`SUPER+P`) shows the active
+theme's folder, and each theme remembers its last wallpaper.
+
+Brave reads its colour from a managed policy. `install.sh` links
+`/etc/brave/policies/managed/theme.json` to `~/.config/theme-active/brave-policy.json`
+(needs sudo once); check it at `brave://policy`.
 
 To add a theme, copy a palette file, change the colours and `name=`, and it
 shows up in the menu. Edit templates, not the files in `theme-active/`.

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Apply a wallpaper now, keep it across hyprpaper restarts, and remember it as
+# the current theme's wallpaper. Used by wallpaper-picker and theme-apply.
+#   set-wallpaper <image>
+
+set -euo pipefail
+
+file="${1:-}"
+if [[ -z "$file" || ! -f "$file" ]]; then
+    echo "usage: set-wallpaper <image file>" >&2
+    exit 1
+fi
+file="$(realpath "$file")"
+
+monitor="eDP-1"
+hyprpaper_conf="$HOME/.config/hypr/hyprpaper.conf"
+state_dir="$HOME/.config/theme-active"
+
+hyprctl hyprpaper wallpaper "$monitor,$file" >/dev/null 2>&1 || true
+
+cat > "$hyprpaper_conf" <<EOF
+splash = false
+ipc = on
+
+wallpaper {
+    monitor = $monitor
+    path = $file
+}
+EOF
+
+if [[ -f "$state_dir/current" ]]; then
+    printf '%s\n' "$file" > "$state_dir/wallpaper-$(cat "$state_dir/current")"
+fi

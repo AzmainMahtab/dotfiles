@@ -87,6 +87,8 @@ catppuccin-cursors-mocha
 bibata-cursor-theme-bin
 papirus-icon-theme
 papirus-folders
+gruvbox-gtk-theme-git
+gtk-engine-murrine
 
 # Fonts
 ttf-jetbrains-mono-nerd

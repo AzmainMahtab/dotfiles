@@ -267,12 +267,15 @@ install_wallpapers() {
 
     mkdir -p "$HOME_WALLPAPERS"
 
+    # One folder per theme (see wallpaper_dir in config/themes/palettes).
+    # "/." copies the contents, so re-running never nests folders.
     for src in "$WALLPAPER_DIR"/*; do
         [[ -e "$src" ]] || continue
         local name
         name="$(basename "$src")"
-        cp -a "$src" "$HOME_WALLPAPERS/$name"
-        success "Wallpaper: $name"
+        mkdir -p "$HOME_WALLPAPERS/$name"
+        cp -a "$src/." "$HOME_WALLPAPERS/$name/"
+        success "Wallpapers: $name"
     done
 }
 
@@ -376,6 +379,16 @@ install_system_files() {
     # freeze. 1s makes amdgpu faults survive to disk.
     install_system_file "$SYSTEM_DIR/journald-crash-capture.conf" \
         "/etc/systemd/journald.conf.d/99-crash-capture.conf"
+
+    # Brave reads managed policies from /etc/brave/policies/managed. theme-apply
+    # renders brave-policy.json and links, so the browser follows themes.
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "Would link /etc/brave/policies/managed/theme.json -> ~/.config/theme-active/brave-policy.json"
+    else
+        sudo mkdir -p /etc/brave/policies/managed
+        sudo ln -sf "$HOME/.config/theme-active/brave-policy.json" /etc/brave/policies/managed/theme.json
+        success "Brave theme policy linked"
+    fi
 }
 
 install_system_file() {

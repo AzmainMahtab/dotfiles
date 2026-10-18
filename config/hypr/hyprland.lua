@@ -80,7 +80,6 @@ hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("XCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
-hl.env("GTK_THEME", "catppuccin-mocha-mauve-standard+default")
 
 -- Force Qt/GTK apps to render natively on Wayland instead of falling back to
 -- XWayland, which doesn't support the fractional monitor scale (1.25) and

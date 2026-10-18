@@ -4,6 +4,7 @@
 Usage: theme-apply <theme>    (theme = a file in ~/.config/themes/palettes)
        theme-apply            (re-apply the current theme, default catppuccin)
        theme-apply --list     (print "<theme>\\t<Display name>" per line)
+       theme-apply --wallpaper-dir   (folder of the current theme's wallpapers)
 
 Palettes (key=value) and templates ({{key}}, {{key.hex}}, {{key.rgb}}) live in
 ~/.config/themes. Output goes to ~/.config/theme-active, which is not tracked.
@@ -54,6 +55,27 @@ def list_themes():
         print(f"{f.stem}\t{load_palette(f.stem).get('name', f.stem)}")
 
 
+def current_name():
+    cur = OUT / "current"
+    return cur.read_text().strip() if cur.is_file() else DEFAULT
+
+
+def wallpaper_dir(pal):
+    return HOME / "Pictures/Wallpapers" / pal.get("wallpaper_dir", "")
+
+
+def pick_wallpaper(name, pal):
+    """The wallpaper last used with this theme, else the first image in its folder."""
+    remembered = OUT / f"wallpaper-{name}"
+    if remembered.is_file():
+        path = Path(remembered.read_text().strip())
+        if path.is_file():
+            return path
+    images = sorted(p for p in wallpaper_dir(pal).glob("*")
+                    if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"))
+    return images[0] if images else None
+
+
 def sh(*cmd):
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
@@ -62,11 +84,12 @@ def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--list":
         return list_themes()
 
+    if len(sys.argv) > 1 and sys.argv[1] == "--wallpaper-dir":
+        print(wallpaper_dir(load_palette(current_name())))
+        return
+
     current = OUT / "current"
-    if len(sys.argv) > 1:
-        name = sys.argv[1]
-    else:
-        name = current.read_text().strip() if current.is_file() else DEFAULT
+    name = sys.argv[1] if len(sys.argv) > 1 else current_name()
     pal = load_palette(name)
     pal.setdefault("name", name)
 
@@ -87,6 +110,16 @@ def main():
     if link.is_symlink() or link.exists():
         link.unlink()
     link.symlink_to(OUT / "dunst.conf")
+
+    # GTK apps (nemo, ...) follow gsettings; GTK_THEME is deliberately not set.
+    gtk = pal.get("gtk_theme")
+    if gtk and (Path("/usr/share/themes") / gtk).is_dir():
+        sh("gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", gtk)
+        sh("gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark")
+
+    wall = pick_wallpaper(name, pal)
+    if wall:
+        sh(str(HOME / ".local/bin/set-wallpaper"), str(wall))
 
     # Reload whatever is running; everything else picks the theme up at next launch.
     sh("hyprctl", "reload")

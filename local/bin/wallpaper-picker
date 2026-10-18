@@ -3,11 +3,11 @@
 
 set -euo pipefail
 
-wall_dir="$HOME/Pictures/Wallpapers"
+# Each theme has its own folder; theme-apply knows which one is active.
+wall_dir="$(theme-apply --wallpaper-dir 2>/dev/null || echo "$HOME/Pictures/Wallpapers")"
 cache_dir="$HOME/.cache/wallpaper-picker"
 wofi_conf="$HOME/.config/wofi/wallpaper-picker-config"
 wofi_style="$HOME/.config/theme-active/wofi-wallpaper-picker.css"
-hyprpaper_conf="$HOME/.config/hypr/hyprpaper.conf"
 thumb_size=200
 
 mkdir -p "$cache_dir"
@@ -63,16 +63,6 @@ selected_name="${selected_name%%:img:*}"
 
 selected_path="$wall_dir/$selected_name"
 
-hyprctl hyprpaper wallpaper "eDP-1,$selected_path" >/dev/null 2>&1
-
-cat > "$hyprpaper_conf" <<EOF
-splash = false
-ipc = on
-
-wallpaper {
-    monitor = eDP-1
-    path = $selected_path
-}
-EOF
+set-wallpaper "$selected_path"
 
 notify-send "Wallpaper" "Set to $selected_name" 2>/dev/null || true
