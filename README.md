@@ -64,12 +64,13 @@ Wallpapers live in one folder per theme under `~/Pictures/Wallpapers/`
 (`wallpaper_dir` in the palette). The picker (`SUPER+P`) shows the active
 theme's folder, and each theme remembers its last wallpaper.
 
-Brave reads its colour from a managed policy. `install.sh` links
-`/etc/brave/policies/managed/theme.json` to `~/.config/theme-active/brave-policy.json`
-(needs sudo once); check it at `brave://policy`.
-
-To add a theme, copy a palette file, change the colours and `name=`, and it
-shows up in the menu. Edit templates, not the files in `theme-active/`.
+Brave reads its colour from a managed policy. `theme-apply` renders
+`~/.config/theme-active/brave-policy.json`; a small root helper
+(`system/brave-theme-sync/`, a systemd path unit) validates the colour and
+writes `/etc/brave/policies/managed/theme.json`, which Brave watches, so a
+running browser recolours within seconds. Set it up once with
+`sudo system/brave-theme-sync/install.sh` (`install.sh` does this too). Check
+`brave://policy`.
 
 ## Package lists
 

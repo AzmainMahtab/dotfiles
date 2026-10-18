@@ -1,0 +1,6 @@
+[Unit]
+Description=Copy the desktop theme colour into Brave's managed policy
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/brave-theme-sync @HOME@/.config/theme-active/brave-policy.json

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Root helper: copy ONLY the theme colour from a user-writable policy file into
+# Brave's managed policy directory. Brave watches that directory, so rewriting
+# the file there recolours the running browser. Nothing else from the user file
+# is trusted: the output is a fixed template around a validated #rrggbb value.
+set -euo pipefail
+
+src="${1:?usage: brave-theme-sync <brave-policy.json>}"
+policy_dir=/etc/brave/policies
+dst="$policy_dir/managed/theme.json"
+
+color="$(grep -oE '"BrowserThemeColor"[[:space:]]*:[[:space:]]*"#[0-9A-Fa-f]{6}"' "$src" | grep -oE '#[0-9A-Fa-f]{6}')" || {
+    echo "brave-theme-sync: no valid BrowserThemeColor in $src" >&2
+    exit 1
+}
+
+mkdir -p "$policy_dir/managed"
+tmp="$(mktemp "$policy_dir/.theme.XXXXXX")"
+printf '{\n  "BrowserThemeColor": "%s",\n  "BrowserColorScheme": "dark"\n}\n' "$color" > "$tmp"
+chmod 644 "$tmp"
+mv -f "$tmp" "$dst"   # atomic rename inside the watched tree

@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the generated Brave theme policy
+
+[Path]
+PathChanged=@HOME@/.config/theme-active/brave-policy.json
+Unit=brave-theme-sync.service
+
+[Install]
+WantedBy=multi-user.target

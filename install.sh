@@ -380,14 +380,13 @@ install_system_files() {
     install_system_file "$SYSTEM_DIR/journald-crash-capture.conf" \
         "/etc/systemd/journald.conf.d/99-crash-capture.conf"
 
-    # Brave reads managed policies from /etc/brave/policies/managed. theme-apply
-    # renders brave-policy.json and links, so the browser follows themes.
+    # Brave reads managed policies from /etc/brave/policies/managed and watches
+    # that directory. A root helper copies the validated theme colour there
+    # whenever theme-apply rewrites ~/.config/theme-active/brave-policy.json.
     if [[ "$DRY_RUN" -eq 1 ]]; then
-        info "Would link /etc/brave/policies/managed/theme.json -> ~/.config/theme-active/brave-policy.json"
+        info "Would run: sudo $SYSTEM_DIR/brave-theme-sync/install.sh"
     else
-        sudo mkdir -p /etc/brave/policies/managed
-        sudo ln -sf "$HOME/.config/theme-active/brave-policy.json" /etc/brave/policies/managed/theme.json
-        success "Brave theme policy linked"
+        sudo "$SYSTEM_DIR/brave-theme-sync/install.sh"
     fi
 }
 
