@@ -166,6 +166,7 @@ def main():
     sh("pkill", "-SIGUSR2", "-x", "waybar")
     sh("pkill", "-SIGUSR1", "-x", "kitty")
     sh("dunstctl", "reload")
+    sh("tmux", "source-file", str(OUT / "tmux.conf"))
     sh("notify-send", "-a", "Theme", "Theme", f"Switched to {pal['name']}")
 
 

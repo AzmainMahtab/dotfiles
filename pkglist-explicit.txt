@@ -35,6 +35,7 @@ neovim
 bash-completion
 eza
 zoxide
+tmux
 fastfetch
 ripgrep
 fd

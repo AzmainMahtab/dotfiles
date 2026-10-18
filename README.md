@@ -7,7 +7,7 @@ terminal, GTK/SDDM theming, fonts, shell, and the packages behind them.
 
 | Directory | Installs to | Contents |
 |---|---|---|
-| `config/` | `~/.config/<name>` | hypr, waybar, wofi, dunst, kitty, themes, gtk-3.0, gtk-4.0, fontconfig, nvim, systemd, mimeapps.list |
+| `config/` | `~/.config/<name>` | hypr, waybar, wofi, dunst, kitty, tmux, themes, gtk-3.0, gtk-4.0, fontconfig, nvim, systemd, mimeapps.list |
 | `home/` | `~/.<name>` | bashrc, bash_profile, profile, inputrc, gitconfig — stored without the leading dot |
 | `local/bin/` | `~/.local/bin/` | wallpaper-picker, wofi-powermenu.sh, screenshot.sh, open-file-manager, validate-keybind-commands, auto-power-profile.py, theme-apply, theme-select |
 | `share/applications/` | `~/.local/share/applications/` | custom `.desktop` entries referenced by `mimeapps.list` |
@@ -50,7 +50,8 @@ Picking one re-renders every themed app and reloads what is running.
 | Menu | `local/bin/theme-select` |
 | Generated output (untracked) | `~/.config/theme-active/` |
 
-Themed: Hyprland borders, waybar, wofi, dunst, kitty, hyprlock, nvim (open
+Themed: Hyprland borders, waybar, wofi, dunst, kitty, tmux (running sessions
+re-source the theme), hyprlock, nvim (open
 instances switch live), GTK apps such as nemo (a generated `gtk.css` over the
 built-in Adwaita, so no GTK theme packages), the wallpaper and Brave's toolbar colour.
 Cursors and Papirus folder colours stay as they are.
