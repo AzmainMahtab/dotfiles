@@ -82,13 +82,10 @@ brave-bin
 # Login screen, themes, icons, cursors
 sddm
 sddm-theme-catppuccin-git
-catppuccin-gtk-theme-mocha
 catppuccin-cursors-mocha
 bibata-cursor-theme-bin
 papirus-icon-theme
 papirus-folders
-gruvbox-gtk-theme-git
-gtk-engine-murrine
 
 # Fonts
 ttf-jetbrains-mono-nerd

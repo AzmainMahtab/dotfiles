@@ -1,9 +1,6 @@
 bibata-cursor-theme-bin
 brave-bin
 catppuccin-cursors-mocha
-catppuccin-gtk-theme-mocha
-gruvbox-gtk-theme-git
-gtk-engine-murrine
 papirus-folders
 paru
 sddm-theme-catppuccin-git

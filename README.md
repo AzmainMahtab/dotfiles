@@ -51,9 +51,13 @@ Picking one re-renders every themed app and reloads what is running.
 | Generated output (untracked) | `~/.config/theme-active/` |
 
 Themed: Hyprland borders, waybar, wofi, dunst, kitty, hyprlock, nvim (open
-instances switch live), GTK apps such as nemo (via gsettings; needs the
-`gruvbox-gtk-theme-git` package), the wallpaper and Brave's toolbar colour.
+instances switch live), GTK apps such as nemo (a generated `gtk.css` over the
+built-in Adwaita, so no GTK theme packages), the wallpaper and Brave's toolbar colour.
 Cursors and Papirus folder colours stay as they are.
+
+GTK3 apps read `gtk.css` once at start, so `theme-apply` restarts the idle nemo
+daemon. Nemo windows that are open keep the old theme until reopened (they are
+never closed, in case a copy is running).
 
 Wallpapers live in one folder per theme under `~/Pictures/Wallpapers/`
 (`wallpaper_dir` in the palette). The picker (`SUPER+P`) shows the active

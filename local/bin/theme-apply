@@ -9,10 +9,12 @@ Usage: theme-apply <theme>    (theme = a file in ~/.config/themes/palettes)
 Palettes (key=value) and templates ({{key}}, {{key.hex}}, {{key.rgb}}) live in
 ~/.config/themes. Output goes to ~/.config/theme-active, which is not tracked.
 """
+import json
 import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 HOME = Path.home()
@@ -76,6 +78,32 @@ def pick_wallpaper(name, pal):
     return images[0] if images else None
 
 
+def nemo_windows():
+    out = subprocess.run(["hyprctl", "clients", "-j"], capture_output=True, text=True).stdout
+    try:
+        return sum(1 for c in json.loads(out) if c.get("class", "").lower() == "nemo")
+    except ValueError:
+        return 0
+
+
+def refresh_nemo():
+    """GTK3 reads gtk.css once per process, so nemo has to be restarted to pick up a
+    new theme. Only the idle daemon is restarted; open windows are never closed
+    (they could be mid-copy) and show the new theme once reopened."""
+    if subprocess.run(["pgrep", "-x", "nemo"], capture_output=True).returncode != 0:
+        return
+    if nemo_windows():
+        sh("notify-send", "-a", "Theme", "File manager",
+           "Open nemo windows keep the old theme until you reopen them")
+        return
+    sh("nemo", "-q")
+    time.sleep(1)  # let the old instance exit before starting the new one
+    # env -u: a daemon started by a session that exported GTK_THEME would ignore gtk.css.
+    subprocess.Popen(["env", "-u", "GTK_THEME", "nemo", "--no-default-window"],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     start_new_session=True)
+
+
 def sh(*cmd):
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
@@ -111,14 +139,23 @@ def main():
         link.unlink()
     link.symlink_to(OUT / "dunst.conf")
 
-    # GTK apps (nemo, ...) follow gsettings; GTK_THEME is deliberately not set.
-    gtk = pal.get("gtk_theme")
-    if gtk and (Path("/usr/share/themes") / gtk).is_dir():
-        sh("gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", gtk)
-        sh("gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark")
+    # GTK apps (nemo, ...): the palette is applied through gtk.css on top of the
+    # built-in Adwaita.
+    for d in ("gtk-3.0", "gtk-4.0"):
+        gdir = HOME / ".config" / d
+        gdir.mkdir(parents=True, exist_ok=True)
+        glink = gdir / "gtk.css"
+        if glink.is_symlink() or glink.exists():
+            glink.unlink()
+        glink.symlink_to(OUT / "gtk.css")
+    iface = "org.gnome.desktop.interface"
+    sh("gsettings", "set", iface, "color-scheme", "prefer-dark")
+    sh("gsettings", "set", iface, "gtk-theme", "Adwaita")
     icons = pal.get("icon_theme")
     if icons and (Path("/usr/share/icons") / icons).is_dir():
-        sh("gsettings", "set", "org.gnome.desktop.interface", "icon-theme", icons)
+        sh("gsettings", "set", iface, "icon-theme", icons)
+
+    refresh_nemo()
 
     wall = pick_wallpaper(name, pal)
     if wall:
