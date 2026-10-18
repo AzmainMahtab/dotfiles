@@ -208,9 +208,19 @@ install_share_files() {
 
     for src in "$SHARE_DIR/applications"/*; do
         [[ -e "$src" ]] || continue
-        local name
+        local name dst
         name="$(basename "$src")"
-        install_config_item "$src" "$HOME_LOCAL_SHARE/applications/$name"
+        dst="$HOME_LOCAL_SHARE/applications/$name"
+        # .desktop Exec= lines do not expand ~ or $HOME, so the repo copies
+        # use an @HOME@ placeholder that is rendered here (always a real file).
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            info "Would render desktop entry: $dst <- $src"
+            continue
+        fi
+        backup_path "$dst"
+        rm -f "$dst"
+        sed "s#@HOME@#$HOME#g" "$src" > "$dst"
+        success "Rendered: $dst"
     done
 
     if command -v update-desktop-database >/dev/null 2>&1 && [[ "$DRY_RUN" -eq 0 ]]; then

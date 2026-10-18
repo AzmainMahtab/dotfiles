@@ -38,7 +38,7 @@ hl.monitor({
 local terminal    = "kitty"
 -- Wrapper prefers nemo and falls back to thunar/dolphin/etc. if nemo is removed,
 -- so Super+E keeps working across package updates.
-local fileManager = "/home/odin/.local/bin/open-file-manager"
+local fileManager = os.getenv("HOME") .. "/.local/bin/open-file-manager"
 local menu        = "wofi --show drun"
 
 
@@ -52,12 +52,12 @@ local menu        = "wofi --show drun"
 hl.on("hyprland.start", function ()
     hl.exec_cmd("bash -c 'while true; do waybar; sleep 1; done'")
     hl.exec_cmd("bash -c 'until hyprctl monitors -j 2>/dev/null | grep -q name; do sleep 0.2; done; hyprpaper'")
-    hl.exec_cmd("hypridle")
+    -- hl.exec_cmd("hypridle")  -- disabled: no auto lock / screen off
     hl.exec_cmd("dunst")
     -- Validate that all keybind/autostart commands still exist after system updates.
     -- If something was removed (e.g. a package providing thunar or flameshot),
     -- this pops a critical notification so the binding isn't silently broken.
-    hl.exec_cmd("/home/odin/.local/bin/validate-keybind-commands")
+    hl.exec_cmd("~/.local/bin/validate-keybind-commands")
     -- Keep Nemo resident so file-manager windows open instantly (warm start ~0.014s).
     hl.exec_cmd("nemo --no-default-window >/dev/null 2>&1")
     hl.exec_cmd("blueman-applet")
@@ -306,7 +306,7 @@ hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("brave"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("/home/odin/.local/bin/wallpaper-picker"))
+hl.bind(mainMod .. " + P", hl.dsp.exec_cmd("~/.local/bin/wallpaper-picker"))
 hl.bind(mainMod .. " + X", hl.dsp.layout("togglesplit"))    -- dwindle only (moved off J for vim-style nav)
 
 -- Rice extras: lock, screenshots, clipboard history
@@ -314,8 +314,8 @@ hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd("hyprlock"))    -- moved off L
 -- Use ~/.local/bin/screenshot.sh (grim+slurp+hyprpicker+swappy) instead of
 -- hardcoding flameshot, so the binding keeps working if the screenshot tool
 -- is replaced during a system update.
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("/home/odin/.local/bin/screenshot.sh"))
-hl.bind("Print", hl.dsp.exec_cmd("/home/odin/.local/bin/screenshot.sh"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("~/.local/bin/screenshot.sh"))
+hl.bind("Print", hl.dsp.exec_cmd("~/.local/bin/screenshot.sh"))
 hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("~/.local/bin/wofi-powermenu.sh"))
 
@@ -364,8 +364,8 @@ hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_S
 hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
 -- Via brightness-safe: amdgpu_bl1 wraps to 0 above raw 62747 and floors below 4400,
 -- so the 0-100% scale is remapped onto that usable window (see the script's header)
-hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("/home/odin/.local/bin/brightness-safe up"),       { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("/home/odin/.local/bin/brightness-safe down"),     { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("~/.local/bin/brightness-safe up"),       { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("~/.local/bin/brightness-safe down"),     { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })

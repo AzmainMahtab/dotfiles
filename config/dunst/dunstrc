@@ -61,3 +61,9 @@
     foreground = "#cdd6f4"
     frame_color = "#f38ba8"
     timeout = 0
+
+[potential_desk_call]
+    summary = "Potential Desk"
+    body = "*wants to call you"
+    script = ~/.config/dunst/scripts/potential-desk-ring.sh
+    urgency = critical

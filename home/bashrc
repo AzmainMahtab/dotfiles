@@ -22,10 +22,9 @@ export PATH="$HOME/.local/bin:$PATH"
 # CC Analytics — Claude Code team analytics (shim disabled: it drops all CLI args,
 # breaking `claude --resume`/`-c`/etc. Hooks in ~/.claude/settings.json use absolute
 # paths and still work.)
-# export PATH="$HOME/.cc-analytics/bin:$PATH"
 
 # opencode
-export PATH=/home/odin/.opencode/bin:$PATH
+export PATH=$HOME/.opencode/bin:$PATH
 
 # NVM (node version manager)
 source /usr/share/nvm/init-nvm.sh

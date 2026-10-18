@@ -42,11 +42,11 @@
     "custom/backlight": {
         "format": "{}",
         "return-type": "json",
-        "exec": "/home/odin/.local/bin/brightness-safe waybar",
+        "exec": "~/.local/bin/brightness-safe waybar",
         "interval": 2,
         "signal": 8,
-        "on-scroll-up": "/home/odin/.local/bin/brightness-safe up",
-        "on-scroll-down": "/home/odin/.local/bin/brightness-safe down",
+        "on-scroll-up": "~/.local/bin/brightness-safe up",
+        "on-scroll-down": "~/.local/bin/brightness-safe down",
         "reverse-scrolling": true
     },
 
