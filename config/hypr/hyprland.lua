@@ -52,7 +52,9 @@ local menu        = "wofi --show drun --style ~/.config/theme-active/wofi.css"
 hl.on("hyprland.start", function ()
     hl.exec_cmd("bash -c 'while true; do waybar; sleep 1; done'")
     hl.exec_cmd("bash -c 'until hyprctl monitors -j 2>/dev/null | grep -q name; do sleep 0.2; done; hyprpaper'")
-    -- hl.exec_cmd("hypridle")  -- disabled: no auto lock / screen off
+    -- hypridle with no idle listeners (see hypridle.conf): no auto lock / screen off,
+    -- but the screen locks before suspend (lid close) and stays locked on resume.
+    hl.exec_cmd("hypridle")
     hl.exec_cmd("dunst")
     -- Validate that all keybind/autostart commands still exist after system updates.
     -- If something was removed (e.g. a package providing thunar or flameshot),
