@@ -129,6 +129,9 @@ def main():
     css = [f"@define-color th_{k} {v};" for k, v in pal.items() if v.startswith("#")]
     (OUT / "colors.css").write_text("\n".join(css) + "\n")
     (OUT / "nvim-colorscheme").write_text(pal.get("nvim_colorscheme", "") + "\n")
+    # The login screen: a root path unit (system/sddm-theme-sync) watches this file.
+    if pal.get("sddm_theme"):
+        (OUT / "sddm-theme").write_text(pal["sddm_theme"] + "\n")
     current.write_text(name + "\n")
 
     # dunst reads drop-ins from dunstrc.d; keep it pointing at the generated file.

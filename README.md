@@ -11,7 +11,7 @@ terminal, GTK/SDDM theming, fonts, shell, and the packages behind them.
 | `home/` | `~/.<name>` | bashrc, bash_profile, profile, inputrc, gitconfig — stored without the leading dot |
 | `local/bin/` | `~/.local/bin/` | wallpaper-picker, wofi-powermenu.sh, screenshot.sh, open-file-manager, validate-keybind-commands, auto-power-profile.py, theme-apply, theme-select |
 | `share/applications/` | `~/.local/share/applications/` | custom `.desktop` entries referenced by `mimeapps.list` |
-| `system/` | `/etc/` | `pam-sudo`, `pam-hyprlock` → `/etc/pam.d/`; `sddm-theme.conf` → `/etc/sddm.conf.d/theme.conf` |
+| `system/` | `/etc/` | `pam-sudo`, `pam-hyprlock` → `/etc/pam.d/`; `sddm-theme.conf` → `/etc/sddm.conf.d/theme.conf`; `sddm/themes/` → `/usr/share/sddm/themes/` (login themes); `sddm-theme-sync/` root helper |
 | `wallpapers/` | `~/Pictures/Wallpapers/` | wallpapers referenced by hyprpaper and the picker |
 | `pkglist-*.txt` | — | rice, AUR and optional package lists |
 
@@ -55,6 +55,19 @@ re-source the theme), hyprlock, nvim (open
 instances switch live), GTK apps such as nemo (a generated `gtk.css` over the
 built-in Adwaita, so no GTK theme packages), the wallpaper and Brave's toolbar colour.
 Cursors and Papirus folder colours stay as they are.
+
+### Login screen (SDDM)
+
+The login theme follows the selected theme. `system/sddm/themes/` holds both:
+`catppuccin-mocha-mauve` (verbatim backup of the `sddm-theme-catppuccin-git`
+theme) and `gruvbox-dark`, generated from it by `system/sddm/make-sddm-theme
+gruvbox themes/gruvbox-dark <wallpaper>` (every Catppuccin colour is swapped for
+the same key in the palette; rerun after editing a palette). Each palette names
+its login theme with `sddm_theme=`; `theme-apply` writes it to
+`~/.config/theme-active/sddm-theme` and the root path unit installed by
+`system/sddm-theme-sync/install.sh` (run by `install.sh`) rewrites
+`/etc/sddm.conf.d/theme.conf`. The helper only accepts the name of an installed
+SDDM theme.
 
 GTK3 apps read `gtk.css` once at start, so `theme-apply` restarts the idle nemo
 daemon. Nemo windows that are open keep the old theme until reopened (they are

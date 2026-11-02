@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the generated SDDM theme selection
+
+[Path]
+PathChanged=@HOME@/.config/theme-active/sddm-theme
+Unit=sddm-theme-sync.service
+
+[Install]
+WantedBy=multi-user.target

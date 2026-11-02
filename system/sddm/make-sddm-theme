@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Recolour the Catppuccin SDDM theme with another palette.
+
+Usage: make-sddm-theme <palette> <out-dir> [background-image]
+
+Every hex colour in the stock theme (themes/catppuccin-mocha-mauve) is one of
+the keys in config/themes/palettes/catppuccin.conf, so it is swapped for the
+same key in <palette>. The output is committed under themes/; rerun this after
+tweaking a palette.
+"""
+import re
+import shutil
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PALETTES = HERE.parent.parent / "config/themes/palettes"
+SOURCE = HERE / "themes/catppuccin-mocha-mauve"
+
+
+def load(name):
+    pal = {}
+    for line in (PALETTES / f"{name}.conf").read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            pal[k.strip()] = v.strip()
+    return pal
+
+
+def main():
+    if len(sys.argv) < 3:
+        sys.exit(__doc__)
+    target, out = load(sys.argv[1]), Path(sys.argv[2])
+    stock = load("catppuccin")
+    by_hex = {}
+    for key, val in stock.items():
+        if val.startswith("#") and not key.startswith("ansi"):
+            by_hex.setdefault(val.lower(), key)
+
+    if out.exists():
+        shutil.rmtree(out)
+    shutil.copytree(SOURCE, out)
+
+    unmapped = set()
+
+    def swap(m):
+        key = by_hex.get(m.group(0).lower())
+        if key is None:
+            unmapped.add(m.group(0))
+            return m.group(0)
+        return target[key]
+
+    for f in out.rglob("*"):
+        if f.suffix in (".qml", ".svg"):
+            f.write_text(re.sub(r"#[0-9A-Fa-f]{6}\b", swap, f.read_text()))
+
+    # theme.conf mentions no colours; just point it at the new background.
+    if len(sys.argv) > 3:
+        shutil.copy(sys.argv[3], out / "backgrounds/wall.png")
+    meta = out / "metadata.desktop"
+    meta.write_text(re.sub(r"^Name=.*$", f"Name={target['name']} (rice)", meta.read_text(), flags=re.M))
+    if unmapped:
+        print("left unchanged (not in the catppuccin palette):", ", ".join(sorted(unmapped)))
+
+
+main()

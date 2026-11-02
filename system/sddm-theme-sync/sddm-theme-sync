@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Root helper: select the SDDM login theme named in a user-writable file.
+# Only a bare theme name is trusted, and only if it is an installed SDDM theme
+# (/usr/share/sddm/themes/<name>/metadata.desktop), so the user file cannot
+# point SDDM at anything outside the root-owned theme directory.
+set -euo pipefail
+
+src="${1:?usage: sddm-theme-sync <sddm-theme-file>}"
+name="$(head -n1 "$src" | tr -d '[:space:]')"
+themes=/usr/share/sddm/themes
+conf_dir=/etc/sddm.conf.d
+
+[[ "$name" =~ ^[A-Za-z0-9._-]+$ && -f "$themes/$name/metadata.desktop" ]] || {
+    echo "sddm-theme-sync: '$name' is not an installed SDDM theme" >&2
+    exit 1
+}
+
+mkdir -p "$conf_dir"
+tmp="$(mktemp "$conf_dir/.theme.XXXXXX")"
+printf '[Theme]\nCurrent=%s\n' "$name" > "$tmp"
+chmod 644 "$tmp"
+mv -f "$tmp" "$conf_dir/theme.conf"

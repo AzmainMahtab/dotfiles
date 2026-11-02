@@ -1,0 +1,6 @@
+[Unit]
+Description=Select the SDDM login theme matching the desktop theme
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sddm-theme-sync @HOME@/.config/theme-active/sddm-theme

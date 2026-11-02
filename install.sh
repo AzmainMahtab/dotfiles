@@ -369,9 +369,17 @@ install_system_files() {
     install_system_file "$SYSTEM_DIR/pam-sudo" "/etc/pam.d/sudo"
     install_system_file "$SYSTEM_DIR/pam-hyprlock" "/etc/pam.d/hyprlock"
 
-    # SDDM theme selection. The theme itself comes from the
-    # sddm-theme-catppuccin-git package; this only selects it.
+    # SDDM theme selection. Starting point only: sddm-theme-sync (below) takes
+    # over and switches the login theme whenever theme-apply changes theme.
     install_system_file "$SYSTEM_DIR/sddm-theme.conf" "/etc/sddm.conf.d/theme.conf"
+
+    # SDDM login themes (catppuccin backup + gruvbox) and the root helper that
+    # keeps the login screen in step with the desktop theme.
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        info "Would run: sudo $SYSTEM_DIR/sddm-theme-sync/install.sh"
+    else
+        sudo "$SYSTEM_DIR/sddm-theme-sync/install.sh"
+    fi
 
     # journald sync interval. The default (5m) loses the tail of the kernel log
     # when the machine hard-locks, which is exactly what happened during the
