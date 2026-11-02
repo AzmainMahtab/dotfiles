@@ -379,6 +379,11 @@ hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("~/.local/bin/brightness-safe up
 hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("~/.local/bin/brightness-safe down"),     { locked = true, repeating = true })
 
 -- Requires playerctl
+-- External keyboard (AULA F75) has no brightness/mic-mute keys, so mirror them on Super+F3/F4/F5
+hl.bind(mainMod .. " + F3", hl.dsp.exec_cmd("~/.local/bin/brightness-safe down"), { locked = true, repeating = true })
+hl.bind(mainMod .. " + F4", hl.dsp.exec_cmd("~/.local/bin/brightness-safe up"),   { locked = true, repeating = true })
+hl.bind(mainMod .. " + F5", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })

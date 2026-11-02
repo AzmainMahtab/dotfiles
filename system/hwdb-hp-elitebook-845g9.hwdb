@@ -1,0 +1,8 @@
+# HP EliteBook 845 G9: Fn+F3 / Fn+F4 (brightness) arrive as scancodes 3d / 3e
+# with no keycode, and the EC never sends a key release for them. The "!" prefix
+# makes the kernel auto-release, otherwise only the first press registers.
+# Install: sudo cp this-file /etc/udev/hwdb.d/61-hp-elitebook-845g9.hwdb
+#          sudo systemd-hwdb update && sudo udevadm trigger --subsystem-match=input --action=change
+evdev:atkbd:dmi:bvn*:bvr*:bd*:svnHP*:pn*EliteBook*845*G9*:*
+ KEYBOARD_KEY_3d=!brightnessdown
+ KEYBOARD_KEY_3e=!brightnessup
