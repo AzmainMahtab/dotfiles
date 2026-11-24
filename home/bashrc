@@ -10,11 +10,9 @@ alias grep='grep --color=auto'
 alias cd='z'
 alias ls='exa -l'
 
-# kitty over SSH: auto-bootstraps xterm-kitty terminfo on the remote host
-# for the session so clear/tput/bracketed-paste work correctly.
-if [ -n "$KITTY_WINDOW_ID" ]; then
-  alias ssh='kitty +kitten ssh'
-fi
+# Plain ssh with a universally known TERM; kitten ssh's remote bootstrap and
+# xterm-kitty keyboard protocol garble pasted passwords at sudo prompts.
+alias ssh='TERM=xterm-256color ssh'
 
 PS1='[\u@\h \W]\$ '
 export PATH="$HOME/.local/bin:$PATH"
